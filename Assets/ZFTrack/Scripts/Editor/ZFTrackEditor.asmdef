@@ -1,0 +1,11 @@
+{
+    "name": "ZFTrackEditor",
+    "references": [
+        "ZFTrack"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": []
+}

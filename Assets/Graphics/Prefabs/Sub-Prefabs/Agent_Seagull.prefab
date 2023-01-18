@@ -1,0 +1,150 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7533896489144816494
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7533896489144816481}
+  - component: {fileID: 7533896489144816483}
+  m_Layer: 0
+  m_Name: Agent_Seagull
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7533896489144816481
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7533896489144816494}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 40, y: 0, z: -237}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children:
+  - {fileID: 4723482693029463597}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7533896489144816483
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7533896489144816494}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09178708dcaf21d458128e774ee8f4fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targets:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  currentTargetIndex: 0
+  turnSpeed: 20
+  maxBank: 45
+  moveSpeed: 10
+  reachDistance: 10
+  banker: {fileID: 4723482693029463597}
+  offsetter: {x: 0, y: 0, z: 0}
+  drawGizmos: 0
+--- !u!1001 &7533896489346103013
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 7533896489144816481}
+    m_Modifications:
+    - target: {fileID: 0}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 0}
+      propertyPath: AnimComponent
+      value: 
+      objectReference: {fileID: 4723482693020215789}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2954617040909167784, guid: 240501c3af0764b4b97d1473d252c6ad,
+        type: 3}
+      propertyPath: m_Name
+      value: Animal_Seagull01
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 240501c3af0764b4b97d1473d252c6ad, type: 3}
+--- !u!4 &4723482693029463597 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2954617040909070536, guid: 240501c3af0764b4b97d1473d252c6ad,
+    type: 3}
+  m_PrefabInstance: {fileID: 7533896489346103013}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &4723482693020215789 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 2954617040899776264, guid: 240501c3af0764b4b97d1473d252c6ad,
+    type: 3}
+  m_PrefabInstance: {fileID: 7533896489346103013}
+  m_PrefabAsset: {fileID: 0}

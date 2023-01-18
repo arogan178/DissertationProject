@@ -1,0 +1,157 @@
+fileFormatVersion: 2
+guid: 8e38e7346c7095e49bbac495d64a5d1d
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Base
+    100002: body
+    100004: body_end
+    100006: JellyFish
+    100008: //RootNode
+    100010: Jellyfish_Obj
+    100012: t00
+    100014: t00_end
+    100016: t01
+    100018: t01_end
+    100020: t02
+    100022: t02_end
+    100024: t03
+    100026: t03_end
+    100028: t04
+    100030: t04_end
+    100032: t05
+    100034: t05_end
+    100036: t06
+    100038: t06_end
+    100040: t07
+    100042: t07_end
+    100044: t08
+    100046: t08_end
+    100048: t09
+    100050: t09_end
+    100052: tGroup01
+    100054: tGroup02
+    100056: tTop
+    100058: tTop_end
+    400000: Base
+    400002: body
+    400004: body_end
+    400006: JellyFish
+    400008: //RootNode
+    400010: Jellyfish_Obj
+    400012: t00
+    400014: t00_end
+    400016: t01
+    400018: t01_end
+    400020: t02
+    400022: t02_end
+    400024: t03
+    400026: t03_end
+    400028: t04
+    400030: t04_end
+    400032: t05
+    400034: t05_end
+    400036: t06
+    400038: t06_end
+    400040: t07
+    400042: t07_end
+    400044: t08
+    400046: t08_end
+    400048: t09
+    400050: t09_end
+    400052: tGroup01
+    400054: tGroup02
+    400056: tTop
+    400058: tTop_end
+    2100000: No Name
+    4300000: Jellyfish_Obj
+    7400000: JellyFish|JellyFIsh_IdleA
+    7400002: JellyFish|JellyFIsh_SwimA
+    9500000: //RootNode
+    13700000: Jellyfish_Obj
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

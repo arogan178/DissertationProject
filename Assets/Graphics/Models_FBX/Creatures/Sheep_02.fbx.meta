@@ -1,0 +1,142 @@
+fileFormatVersion: 2
+guid: e26da54ffe4ee294cbc0ccb3f28db39c
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Arm_sheep01
+    100002: chest
+    100004: head
+    100006: head_end
+    100008: hips
+    100010: leg.b.l
+    100012: leg.b.l_end
+    100014: leg.b.r
+    100016: leg.b.r_end
+    100018: leg.f.l
+    100020: leg.f.l_end
+    100022: leg.f.r
+    100024: leg.f.r_end
+    100026: main
+    100028: Ob_sheep01
+    100030: root
+    100032: //RootNode
+    100034: stomach
+    100036: stomach_end
+    100038: tail
+    100040: tail_end
+    400000: Arm_sheep01
+    400002: chest
+    400004: head
+    400006: head_end
+    400008: hips
+    400010: leg.b.l
+    400012: leg.b.l_end
+    400014: leg.b.r
+    400016: leg.b.r_end
+    400018: leg.f.l
+    400020: leg.f.l_end
+    400022: leg.f.r
+    400024: leg.f.r_end
+    400026: main
+    400028: Ob_sheep01
+    400030: root
+    400032: //RootNode
+    400034: stomach
+    400036: stomach_end
+    400038: tail
+    400040: tail_end
+    2100000: No Name
+    4300000: Ob_sheep01
+    7400000: Arm_sheep01|sheep01_eatA
+    7400002: Arm_sheep01|sheep01_idleA
+    7400004: Arm_sheep01|sheep01_jumpA
+    7400006: Arm_sheep01|sheep01_runA
+    7400008: Arm_sheep01|sheep01_walkA
+    9500000: //RootNode
+    13700000: Ob_sheep01
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

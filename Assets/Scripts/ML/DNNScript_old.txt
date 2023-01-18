@@ -1,0 +1,222 @@
+// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// DNNScript
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Assets;
+using Assets.ML;
+using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Networking;
+
+public class DNNScript : MonoBehaviour
+{
+    private StreamWriter rdf;
+
+    private StreamWriter statisticsFile;
+
+    private NewHeartRateScript hrUtil;
+
+    public bool weightsUploaded;
+
+    public bool trainingComplete;
+
+    public bool trainingStarted;
+
+    public bool newUserTrainingComplete;
+
+    public bool newUserTrainingStarted;
+
+    private string newDeviceWeights = string.Empty;
+
+    private string newDeviceWeightsSGD = string.Empty;
+
+    private string newDeviceWeightsANNSGD = string.Empty;
+
+    private string newDeviceWeightsANNPSO = string.Empty;
+
+    [SerializeField]
+    private string apiURI;
+
+    private StreamWriter combinedDf;
+
+    private StreamWriter accuraciesDf;
+
+    public bool isInitialized;
+
+    public double maxRRValue;
+
+    public double minRRValue;
+
+    public double maxHRValue;
+
+    public double minHRValue;
+
+    private double[][] trainData;
+
+    private const int numInput = 2;
+
+    private const int numOutput = 2;
+
+    private double[] weightChanges = new double[32];
+
+    public NeuralNetworkBackProp neuralNetworkBackProp;
+
+    private double modelErrorANNBP;
+
+    private const int numHiddenANNBP = 6;
+
+    private double[] newWeightsANNBP;
+
+    private int maxEpochsANNBP = 10;
+
+    private double learnRateANNBP = 0.01;
+
+    private double momentumANNBP = 0.01;
+
+    public void WriteAnalytics(List<double[]> trainData, List<double[]> testData)
+    {
+        string path = Application.persistentDataPath + "/combinedReadingsNormalized.txt";
+        if (!File.Exists(path))
+        {
+            combinedDf = File.CreateText(path);
+        }
+        else
+        {
+            combinedDf = File.AppendText(path);
+        }
+        foreach (double[] trainDatum in trainData)
+        {
+            string value = string.Join(",", trainDatum);
+            combinedDf.WriteLine(value);
+        }
+        combinedDf.Close();
+        double num = neuralNetworkBackProp.Accuracy(testData.ToArray());
+        statisticsFile.WriteLine(
+            "---------------------------------------------------------------------------------------------"
+        );
+        statisticsFile.WriteLine("Number of Data Items (test): " + testData.Count);
+        statisticsFile.WriteLine("ANN Back Prop");
+        statisticsFile.WriteLine("Model Accuracy (federated learning): " + num);
+        statisticsFile.Close();
+    }
+
+    private void Start()
+    {
+        hrUtil = UnityEngine.Object.FindObjectOfType<NewHeartRateScript>();
+    }
+
+    public void InitializeModelANNBackProp(double[] weights)
+    {
+        neuralNetworkBackProp = new NeuralNetworkBackProp(2, 6, 2);
+        if (!weights.Any((double v) => v == 0.0))
+        {
+            neuralNetworkBackProp.SetWeights(weights);
+        }
+    }
+
+    public void TrainModel(object td)
+    {
+        Dictionary<string, object> obj = td as Dictionary<string, object>;
+        List<double[]> list = obj["TrainingData"] as List<double[]>;
+        string path = obj["DataPath"].ToString();
+        List<double> list2 = obj["StartingWeights"] as List<double>;
+        trainingStarted = true;
+        trainingComplete = false;
+
+        int num = list[0].Length;
+        trainData = new double[list.Count][];
+
+        for (int i = 0; i < list.Count; i++)
+        {
+            trainData[i] = new double[num];
+        }
+		
+        for (int j = 0; j < trainData.Length; j++)
+        {
+            double[] array = trainData[j];
+            for (int k = 0; k < array.Length; k++)
+            {
+                trainData[j][k] = Convert.ToDouble(array[k]);
+            }
+        }
+        newWeightsANNBP = neuralNetworkBackProp.Train(
+            trainData,
+            maxEpochsANNBP,
+            learnRateANNBP,
+            momentumANNBP
+        );
+        neuralNetworkBackProp.SetWeights(newWeightsANNBP);
+        modelErrorANNBP = neuralNetworkBackProp.Error(trainData, verbose: false);
+		
+        newDeviceWeights = string.Empty;
+        newDeviceWeightsSGD = string.Empty;
+        newDeviceWeightsANNSGD = string.Join(",", newWeightsANNBP);
+        newDeviceWeightsANNPSO = string.Empty;
+        for (int l = 0; l < newWeightsANNBP.Length; l++)
+        {
+            weightChanges[l] = list2[l] - newWeightsANNBP[l];
+        }
+        rdf = File.CreateText(path);
+        ModelClass item = new ModelClass
+        {
+            modelData = newDeviceWeights,
+            maxHR = maxHRValue,
+            minHR = minHRValue,
+            maxRR = maxRRValue,
+            minRR = minRRValue
+        };
+        ModelClass item2 = new ModelClass
+        {
+            modelData = newDeviceWeightsSGD,
+            maxHR = maxHRValue,
+            minHR = minHRValue,
+            maxRR = maxRRValue,
+            minRR = minRRValue
+        };
+        ModelClass item3 = new ModelClass
+        {
+            modelData = newDeviceWeightsANNPSO,
+            maxHR = maxHRValue,
+            minHR = minHRValue,
+            maxRR = maxRRValue,
+            minRR = minRRValue
+        };
+        ModelClass item4 = new ModelClass
+        {
+            modelData = newDeviceWeightsANNSGD,
+            maxHR = maxHRValue,
+            minHR = minHRValue,
+            maxRR = maxRRValue,
+            minRR = minRRValue
+        };
+        string value = JsonConvert.SerializeObject(
+            new List<ModelClass> { item, item2, item3, item4 }
+        );
+        rdf.WriteLine(value);
+        rdf.Close();
+        trainingComplete = true;
+    }
+
+    public IEnumerator UploadNewWeightsANNSGD(int dataLinesNum)
+    {
+        weightsUploaded = true;
+        string text = string.Join(",", weightChanges);
+        UnityWebRequest unityWebRequest = UnityWebRequest.Get(
+            string.Concat(
+                "https://morpheusapi.azurewebsites.net/api/MorpheusData/PostValues?data=",
+                text,
+                "&device=",
+                SystemInfo.deviceUniqueIdentifier,
+                Guid.NewGuid(),
+                "&error=",
+                modelErrorANNBP.ToString(),
+                "&mode=ANNSGD&deviceData=",
+                dataLinesNum
+            )
+        );
+        yield return unityWebRequest.SendWebRequest();
+    }
+}

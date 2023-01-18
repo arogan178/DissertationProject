@@ -1,0 +1,445 @@
+// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// Assets.ML.NeuralNetworkBackProp
+using System;
+
+namespace Assets.ML
+{
+    public class NeuralNetworkBackProp
+    {
+        private int numInput;
+        private int numHidden;
+        private int numOutput;
+
+        private double[] inputs;
+        private double[][] ihWeights;
+        private double[] hBiases;
+        private double[] hOutputs;
+
+        private double[][] hoWeights;
+        private double[] oBiases;
+        private double[] outputs;
+
+        public double finalErr;
+
+        private Random rnd;
+
+        public NeuralNetworkBackProp(int numInput, int numHidden, int numOutput)
+        {
+            this.numInput = numInput;
+            this.numHidden = numHidden;
+            this.numOutput = numOutput;
+            inputs = new double[numInput];
+            ihWeights = MakeMatrix(numInput, numHidden, 0.0);
+            hBiases = new double[numHidden];
+            hOutputs = new double[numHidden];
+            hoWeights = MakeMatrix(numHidden, numOutput, 0.0);
+            oBiases = new double[numOutput];
+            outputs = new double[numOutput];
+            finalErr = 0.0;
+            rnd = new Random(0);
+            InitializeWeights();
+        }
+
+        private static double[][] MakeMatrix(int rows, int cols, double v)
+        {
+            double[][] array = new double[rows][];
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = new double[cols];
+            }
+            for (int j = 0; j < rows; j++)
+            {
+                for (int k = 0; k < cols; k++)
+                {
+                    array[j][k] = v;
+                }
+            }
+            return array;
+        }
+
+        private void InitializeWeights()
+        {
+            double[] array = new double[
+                numInput * numHidden + numHidden * numOutput + numHidden + numOutput
+            ];
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                array[i] = 0.0009 * rnd.NextDouble() + 0.0001;
+            }
+            SetWeights(array);
+        }
+
+        public double Error(double[][] data, bool verbose)
+        {
+            double num = 0.0;
+            double[] array = new double[numInput];
+            double[] array2 = new double[numOutput];
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                Array.Copy(data[i], array, numInput);
+                Array.Copy(data[i], numInput, array2, 0, numOutput);
+                double[] array3 = ComputeOutputs(array);
+                if (verbose)
+                {
+                    Console.WriteLine("");
+                    Console.ReadLine();
+                }
+                for (int j = 0; j < numOutput; j++)
+                {
+                    double num2 = array2[j] - array3[j];
+                    num += num2 * num2;
+                }
+            }
+            return num / (double)(data.Length * numOutput);
+        }
+
+        public void SetWeights(double[] weights)
+        {
+            // copy serialized weights and biases in weights[] array
+            // to i-h weights, i-h biases, h-o weights, h-o biases
+            int num = numInput * numHidden + numHidden * numOutput + numHidden + numOutput;
+            if (weights.Length != num)
+            {
+                throw new Exception("Bad weights array in SetWeights");
+            }
+            int num2 = 0;
+            for (int i = 0; i < numInput; i++)
+            {
+                for (int j = 0; j < numHidden; j++)
+                {
+                    ihWeights[i][j] = weights[num2++];
+                }
+            }
+            for (int k = 0; k < numHidden; k++)
+            {
+                hBiases[k] = weights[num2++];
+            }
+            for (int l = 0; l < numHidden; l++)
+            {
+                for (int m = 0; m < numOutput; m++)
+                {
+                    hoWeights[l][m] = weights[num2++];
+                }
+            }
+            for (int n = 0; n < numOutput; n++)
+            {
+                oBiases[n] = weights[num2++];
+            }
+        }
+
+        public double[] GetWeights()
+        {
+            double[] array = new double[
+                numInput * numHidden + numHidden * numOutput + numHidden + numOutput
+            ];
+            int num = 0;
+
+            for (int i = 0; i < ihWeights.Length; i++)
+            {
+                for (int j = 0; j < ihWeights[0].Length; j++)
+                {
+                    array[num++] = ihWeights[i][j];
+                }
+            }
+            for (int k = 0; k < hBiases.Length; k++)
+            {
+                array[num++] = hBiases[k];
+            }
+            for (int l = 0; l < hoWeights.Length; l++)
+            {
+                for (int m = 0; m < hoWeights[0].Length; m++)
+                {
+                    array[num++] = hoWeights[l][m];
+                }
+            }
+            for (int n = 0; n < oBiases.Length; n++)
+            {
+                array[num++] = oBiases[n];
+            }
+            return array;
+        }
+
+        public double[] ComputeOutputs(double[] xValues)
+        {
+            double[] array = new double[numHidden];
+            double[] array2 = new double[numOutput];
+
+            for (int i = 0; i < xValues.Length; i++)
+            {
+                inputs[i] = xValues[i];
+            }
+            for (int j = 0; j < numHidden; j++)
+            {
+                for (int k = 0; k < numInput; k++)
+                {
+                    array[j] += inputs[k] * ihWeights[k][j];
+                }
+            }
+            for (int l = 0; l < numHidden; l++)
+            {
+                array[l] += hBiases[l];
+            }
+            for (int m = 0; m < numHidden; m++)
+            {
+                hOutputs[m] = HyperTan(array[m]);
+            }
+            for (int n = 0; n < numOutput; n++)
+            {
+                for (int num = 0; num < numHidden; num++)
+                {
+                    array2[n] += hOutputs[num] * hoWeights[num][n];
+                }
+            }
+            for (int num2 = 0; num2 < numOutput; num2++)
+            {
+                array2[num2] += oBiases[num2];
+            }
+            double[] array3 = Softmax(array2);
+            Array.Copy(array3, outputs, array3.Length);
+            double[] array4 = new double[numOutput];
+            Array.Copy(outputs, array4, array4.Length);
+            return array4;
+        }
+
+        private static double HyperTan(double x)
+        {
+            if (x < -20.0)
+            {
+                return -1.0;
+            }
+            if (x > 20.0)
+            {
+                return 1.0;
+            }
+            return Math.Tanh(x);
+        }
+
+        private static double[] Softmax(double[] oSums)
+        {
+            // does all output nodes at once so scale
+            // doesn't have to be re-computed each time
+            double num = 0.0;
+            for (int i = 0; i < oSums.Length; i++)
+            {
+                num += Math.Exp(oSums[i]);
+            }
+            double[] array = new double[oSums.Length];
+            for (int j = 0; j < oSums.Length; j++)
+            {
+                array[j] = Math.Exp(oSums[j]) / num;
+            }
+            return array;
+        }
+
+        public double[] Train(
+            double[][] trainData,
+            int maxEpochs,
+            double learnRate,
+            double momentum
+        )
+        {
+            double[][] array = MakeMatrix(numHidden, numOutput, 0.0);
+            double[] array2 = new double[numOutput];
+            double[][] array3 = MakeMatrix(numInput, numHidden, 0.0);
+            double[] array4 = new double[numHidden];
+            double[] array5 = new double[numOutput];
+            double[] array6 = new double[numHidden];
+            double[][] array7 = MakeMatrix(numInput, numHidden, 0.0);
+            double[] array8 = new double[numHidden];
+            double[][] array9 = MakeMatrix(numHidden, numOutput, 0.0);
+            double[] array10 = new double[numOutput];
+            int num = 0;
+            double[] array11 = new double[numInput];
+            double[] array12 = new double[numOutput];
+            double num2 = 0.0;
+            double num3 = 0.0;
+            int[] array13 = new int[trainData.Length];
+            for (int i = 0; i < array13.Length; i++)
+            {
+                array13[i] = i;
+            }
+            int num4 = maxEpochs / 10;
+            while (num < maxEpochs)
+            {
+                num++;
+                if (num % num4 == 0 && num < maxEpochs)
+                {
+                    double num5 = (finalErr = Error(trainData));
+                    Console.WriteLine("epoch = " + num + "  error = " + num5.ToString("F4"));
+                }
+                Shuffle(array13);
+                for (int j = 0; j < trainData.Length; j++)
+                {
+                    int num6 = array13[j];
+                    Array.Copy(trainData[num6], array11, numInput);
+                    Array.Copy(trainData[num6], numInput, array12, 0, numOutput);
+                    ComputeOutputs(array11);
+                    for (int k = 0; k < numOutput; k++)
+                    {
+                        num3 = array12[k] - outputs[k];
+                        num2 = (1.0 - outputs[k]) * outputs[k];
+                        array5[k] = num3 * num2;
+                    }
+                    for (int l = 0; l < numHidden; l++)
+                    {
+                        for (int m = 0; m < numOutput; m++)
+                        {
+                            array[l][m] = array5[m] * hOutputs[l];
+                        }
+                    }
+                    for (int n = 0; n < numOutput; n++)
+                    {
+                        array2[n] = array5[n] * 1.0;
+                    }
+                    for (int num7 = 0; num7 < numHidden; num7++)
+                    {
+                        num2 = (1.0 + hOutputs[num7]) * (1.0 - hOutputs[num7]);
+                        double num8 = 0.0;
+                        for (int num9 = 0; num9 < numOutput; num9++)
+                        {
+                            num8 += array5[num9] * hoWeights[num7][num9];
+                        }
+                        array6[num7] = num2 * num8;
+                    }
+                    for (int num10 = 0; num10 < numInput; num10++)
+                    {
+                        for (int num11 = 0; num11 < numHidden; num11++)
+                        {
+                            array3[num10][num11] = array6[num11] * inputs[num10];
+                        }
+                    }
+                    for (int num12 = 0; num12 < numHidden; num12++)
+                    {
+                        array4[num12] = array6[num12] * 1.0;
+                    }
+                    for (int num13 = 0; num13 < numInput; num13++)
+                    {
+                        for (int num14 = 0; num14 < numHidden; num14++)
+                        {
+                            double num15 = array3[num13][num14] * learnRate;
+                            ihWeights[num13][num14] += num15;
+                            ihWeights[num13][num14] += array7[num13][num14] * momentum;
+                            array7[num13][num14] = num15;
+                        }
+                    }
+                    for (int num16 = 0; num16 < numHidden; num16++)
+                    {
+                        double num17 = array4[num16] * learnRate;
+                        hBiases[num16] += num17;
+                        hBiases[num16] += array8[num16] * momentum;
+                        array8[num16] = num17;
+                    }
+                    for (int num18 = 0; num18 < numHidden; num18++)
+                    {
+                        for (int num19 = 0; num19 < numOutput; num19++)
+                        {
+                            double num20 = array[num18][num19] * learnRate;
+                            hoWeights[num18][num19] += num20;
+                            hoWeights[num18][num19] += array9[num18][num19] * momentum;
+                            array9[num18][num19] = num20;
+                        }
+                    }
+                    for (int num21 = 0; num21 < numOutput; num21++)
+                    {
+                        double num22 = array2[num21] * learnRate;
+                        oBiases[num21] += num22;
+                        oBiases[num21] += array10[num21] * momentum;
+                        array10[num21] = num22;
+                    }
+                }
+            }
+            return GetWeights();
+        }
+
+        private void Shuffle(int[] sequence)
+        {
+            for (int i = 0; i < sequence.Length; i++)
+            {
+                int num = rnd.Next(i, sequence.Length);
+                int num2 = sequence[num];
+                sequence[num] = sequence[i];
+                sequence[i] = num2;
+            }
+        }
+
+        public double Error(double[][] trainData)
+        {
+            double num = 0.0;
+            double[] array = new double[numInput];
+            double[] array2 = new double[numOutput];
+            for (int i = 0; i < trainData.Length; i++)
+            {
+                Array.Copy(trainData[i], array, numInput);
+                Array.Copy(trainData[i], numInput, array2, 0, numOutput);
+                double[] array3 = ComputeOutputs(array);
+                for (int j = 0; j < numOutput; j++)
+                {
+                    double num2 = array2[j] - array3[j];
+                    num += num2 * num2;
+                }
+            }
+            return num / (double)trainData.Length;
+        }
+
+        public double Error(double[][] trainData, double[] weights)
+        {
+            SetWeights(weights);
+            double num = 0.0;
+            double[] array = new double[numInput];
+            double[] array2 = new double[numOutput];
+            for (int i = 0; i < trainData.Length; i++)
+            {
+                Array.Copy(trainData[i], array, numInput);
+                Array.Copy(trainData[i], numInput, array2, 0, numOutput);
+                double[] array3 = ComputeOutputs(array);
+                for (int j = 0; j < numOutput; j++)
+                {
+                    double num2 = array2[j] - array3[j];
+                    num += num2 * num2;
+                }
+            }
+            return num / (double)trainData.Length;
+        }
+
+        public double Accuracy(double[][] testData)
+        {
+            int num = 0;
+            int num2 = 0;
+            double[] array = new double[numInput];
+            double[] array2 = new double[numOutput];
+            for (int i = 0; i < testData.Length; i++)
+            {
+                Array.Copy(testData[i], array, numInput);
+                Array.Copy(testData[i], numInput, array2, 0, numOutput);
+                int num3 = MaxIndex(ComputeOutputs(array));
+                int num4 = MaxIndex(array2);
+                if (num3 == num4)
+                {
+                    num++;
+                }
+                else
+                {
+                    num2++;
+                }
+            }
+            return (double)num * 1.0 / (double)(num + num2);
+        }
+
+        private static int MaxIndex(double[] vector)
+        {
+            int result = 0;
+            double num = vector[0];
+            for (int i = 0; i < vector.Length; i++)
+            {
+                if (vector[i] > num)
+                {
+                    num = vector[i];
+                    result = i;
+                }
+            }
+            return result;
+        }
+    }
+}

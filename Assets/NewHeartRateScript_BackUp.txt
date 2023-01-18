@@ -1,0 +1,666 @@
+﻿using Assets;
+using Newtonsoft.Json;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using UnityEngine;
+using UnityEngine.Networking;
+using UnityEngine.UI;
+using TMPro;
+
+public class NewHeartRateScript_BackUp : MonoBehaviour
+{
+    DateTime serverModelDate;
+    double[] ANNmodelWeights = new double[27];
+
+    List<int> prevStates = new List<int>();
+    public double maxRRValue;
+    public double minRRValue;
+
+    public double maxHRValue;
+    public double minHRValue;
+
+    private int numOfPlayedGames = 0;
+    private int dataLinesNum = 0;
+
+    [SerializeField]
+    private DNNScript dNN;
+    public bool minMaxSet = false;
+
+    public bool isInitialized = false;
+
+    private double[] downloadedWeightsANNSGD;
+
+    private DownloadModel downloadedData;
+    private int startingHr = 0;
+    private char[] unitChars = { 'b', 'p', 'm', 's', ' ' };
+
+    List<int> RRReadings = new List<int>();
+    List<int> hrReadings = new List<int>();
+
+    [SerializeField]
+    public float readingDelay = 20.0f;
+
+    [SerializeField]
+    private float rrReadingsLimit = 30.0f;
+
+    [SerializeField]
+    private float hrReadingsLimit = 120.0f;
+
+    private float elapsedTime = 0.0f;
+
+    int outputClass = 3;
+    int outputHR = 0;
+    int outputRR = 0;
+
+    TrackSetup trackSetup;
+    TrackSwitcher trackSwitcher;
+
+    List<string> affectiveStatesList = new List<string>();
+    List<double[]> winningAffectiveStatesList = new List<double[]>();
+
+    List<double> rmssdList = new List<double>();
+    public List<double[]> trainingDataList = new List<double[]>();
+    public List<double[]> testDataList = new List<double[]>();
+    public List<double[]> uploadTestDataList = new List<double[]>();
+
+    Thread trainingThread;
+    BaseLineAcquisition baseLineAcquisition;
+
+    List<int> checkStateHr = new List<int>();
+    List<int> checkStateRR = new List<int>();
+
+    public int currentState = 3;
+    bool trainingStarted = false;
+    public bool trainingComplete = false;
+
+    public bool allWeightsAreZero = false;
+    public bool newUser = false;
+
+    private string activePlayer = String.Empty;
+    public int globalDataAmount = 0;
+    public int localDataAmount = 0;
+
+    StreamWriter combinedUserDf;
+
+    public TMP_Text hrText;
+    public TMP_Text rmssdText;
+    public TMP_Text resText;
+
+    private void OnDestroy()
+    {
+        var activeUser = PlayerPrefs.GetString("ActivePlayer");
+        string combinedPathUser =
+            Application.persistentDataPath
+            + "/Users/"
+            + activeUser
+            + "/combinedReadingsNormalized.txt";
+
+        if (!File.Exists(combinedPathUser))
+        {
+            combinedUserDf = File.CreateText(combinedPathUser);
+        }
+        else
+        {
+            combinedUserDf = File.AppendText(combinedPathUser);
+        }
+        //var normalisedData = Helpers.NormalizeData(trainingDataList, minRRValue, maxRRValue, minHRValue, maxHRValue);
+        var normalisedData = Helpers.NormalizeTrainingData(trainingDataList);
+        foreach (double[] trainDataLine in normalisedData)
+        {
+            string line = string.Join(",", trainDataLine);
+            combinedUserDf.WriteLine(line);
+        }
+        combinedUserDf.Close();
+    }
+
+    public void UpdateServerWeights()
+    {
+        StartCoroutine(UploadTrainData(trainingDataList));
+        StartCoroutine(UploadTestData(testDataList));
+    }
+
+    private void Awake()
+    {
+        StartCoroutine(GetModelData(Initialize));
+
+        trackSetup = GameObject.FindObjectOfType<TrackSetup>();
+        baseLineAcquisition = GameObject.FindObjectOfType<BaseLineAcquisition>();
+        trackSwitcher = GameObject.FindObjectOfType<TrackSwitcher>();
+
+        currentState = 3;
+    }
+
+    // Start is called before the first frame update
+    void Initialize(DownloadModel downloadedData)
+    {
+        newUser = Convert.ToBoolean(PlayerPrefs.GetInt("NewPlayer"));
+
+        if (downloadedData != null || downloadedData.models != String.Empty)
+        {
+            serverModelDate = Convert.ToDateTime(downloadedData.date);
+            var dataItem = JsonConvert.DeserializeObject<List<DataItem>>(downloadedData.models);
+
+            globalDataAmount = dataItem.First().totalDataItems;
+
+            if (dataItem.Count > 1)
+            {
+                if (string.IsNullOrEmpty(dataItem.Last().data))
+                {
+                    downloadedWeightsANNSGD = new double[32]; //27
+                }
+                else
+                {
+                    downloadedWeightsANNSGD = Array.ConvertAll(
+                        dataItem.Last().data.Split(','),
+                        Double.Parse
+                    );
+                }
+            }
+        }
+        else
+        {
+            downloadedWeightsANNSGD = new double[27]; //27
+        }
+
+        if (newUser)
+        {
+            dNN.InitializeModelANNBackProp(downloadedWeightsANNSGD);
+            ANNmodelWeights = downloadedWeightsANNSGD;
+        }
+        else
+        {
+            activePlayer = PlayerPrefs.GetString("ActivePlayer");
+            var localModelDateKey = activePlayer + "-modelDownloadedDate";
+            var localData = Helpers.LoadModel(activePlayer);
+
+            var localWeightsANNSGD = Array.ConvertAll(
+                localData[3].modelData.Split(','),
+                Double.Parse
+            );
+
+            DateTime localModelDate;
+            try
+            {
+                localModelDate = Convert.ToDateTime(PlayerPrefs.GetString(localModelDateKey)).Date;
+            }
+            catch (Exception e)
+            {
+                localModelDate = DateTime.Now.Date;
+            }
+
+            var serverDate = Convert.ToDateTime(downloadedData.date);
+
+            if (DateTime.Compare(serverModelDate, localModelDate) > 0)
+            {
+                //average the weights and initialise
+                var averagedModelWeights = Helpers.AverageWeights(
+                    downloadedWeightsANNSGD,
+                    localWeightsANNSGD
+                );
+
+                dNN.InitializeModelANNBackProp(averagedModelWeights);
+                ANNmodelWeights = averagedModelWeights;
+            }
+            else
+            {
+                dNN.InitializeModelANNBackProp(localWeightsANNSGD);
+                ANNmodelWeights = localWeightsANNSGD;
+            }
+        }
+
+        isInitialized = true;
+        Invoke("ReadStartingHr", readingDelay);
+        InvokeRepeating("ReadRRData", readingDelay, 1.0f);
+        InvokeRepeating("ReadHRData", readingDelay, 1.0f);
+        InvokeRepeating("CheckPlayerState", readingDelay, 1.0f);
+    }
+
+    public void FixedUpdate()
+    {
+        // If the elapsed time (time passed since the game started) is greater than the delay between readings
+        if (elapsedTime > readingDelay)
+        {
+            // If the number of RR readings has reached the limit
+            if (RRReadings.Count == rrReadingsLimit)
+            {
+                // Store the list of RR readings in a separate list, then clear the RRReadings list
+                List<int> RRreadingsList = RRReadings;
+                RRReadings = new List<int>();
+
+                // Calculate the root mean square of successive differences (RMSSD) for the RR readings
+                double rmssd = Helpers.RMSSD(RRreadingsList);
+                // Add the calculated RMSSD to the rmssdList
+                rmssdList.Add(rmssd);
+
+                // Calculate the winning affective state from the affectiveStatesList
+                double[] winningStates = Helpers.WinningState(affectiveStatesList);
+
+                // Add the calculated winning affective state to the winningAffectiveStatesList
+                winningAffectiveStatesList.Add(winningStates);
+
+                // Clear the affectiveStatesList
+                affectiveStatesList = new List<string>();
+            }
+
+            // If the number of HR readings has reached the limit
+            if (hrReadings.Count == hrReadingsLimit)
+            {
+                // Store the list of HR readings in a separate list, then clear the hrReadings list
+                List<int> HRList = hrReadings;
+                hrReadings = new List<int>();
+
+                // Calculate the maximum heart rate change for the HR readings
+                double maxHRChange = Helpers.HRChange(HRList, startingHr);
+
+                // Loop through the rmssdList
+                for (int i = 0; i < rmssdList.Count; i++)
+                {
+                    // Create an array with the RMSSD value, the maximum HR change, and the winning affective state
+                    double[] resultArray = new double[]
+                    {
+                        Math.Round((Double)rmssdList[i], 2),
+                        Math.Round((Double)maxHRChange, 2),
+                        winningAffectiveStatesList.Last()[0],
+                        winningAffectiveStatesList.Last()[1]
+                    };
+
+                    // If the baseline has not been gathered
+                    if (!baseLineAcquisition.baselineGathered)
+                    {
+                        // Add the array to the trainingDataList
+                        trainingDataList.Add(resultArray);
+                    }
+                }
+
+                // Clear the rmssdList
+                rmssdList = new List<double>();
+            }
+        }
+        else // If the elapsed time is less than the reading delay
+        {
+            // Increment the elapsed time by the time passed since the last frame (Time.deltaTime)
+            elapsedTime = elapsedTime + Time.deltaTime;
+        }
+        // If the baseline has been gathered and the minimum and maximum values have not been set
+        if (baseLineAcquisition.baselineGathered && !minMaxSet) //&& !dNN.trainingComplete && !trainingStarted)
+        {
+            // Calculate the minimum and maximum values for the RMSSD and
+            var minMaxValues = Helpers.MinMax(trainingDataList);
+            maxRRValue = minMaxValues[0];
+            minRRValue = minMaxValues[1];
+
+            maxHRValue = minMaxValues[2];
+            minHRValue = minMaxValues[3];
+
+            minMaxSet = true;
+
+            trainingStarted = true;
+            if (trainingThread == null || !trainingThread.IsAlive)
+            {
+                Dictionary<string, object> dict = new Dictionary<string, object>();
+                string playerDataPath =
+                    Application.persistentDataPath
+                    + "/Users/"
+                    + PlayerPrefs.GetString("ActivePlayer")
+                    + ".txt";
+
+                if (PlayerPrefs.HasKey(activePlayer + "-dataItems"))
+                {
+                    dataLinesNum = PlayerPrefs.GetInt(activePlayer + "-dataItems");
+                    dataLinesNum = dataLinesNum + trainingDataList.Count();
+                    PlayerPrefs.SetInt(activePlayer + "-dataItems", dataLinesNum);
+                }
+                else
+                {
+                    dataLinesNum = trainingDataList.Count();
+                    PlayerPrefs.SetInt(activePlayer + "-dataItems", trainingDataList.Count());
+                }
+
+                trainingDataList = Helpers.NormalizeTrainingData(trainingDataList);
+                var normalizedData = trainingDataList;
+
+                dict.Add("DataPath", playerDataPath);
+                dict.Add("TrainingData", normalizedData);
+
+                dict.Add("DownloadedWeightsANNSGD", downloadedWeightsANNSGD);
+                dict.Add("GlobalDataAmount", globalDataAmount);
+                dict.Add("LocalDataAmount", localDataAmount);
+                dict.Add("StartingWeights", ANNmodelWeights.ToList());
+
+                var playedGamesKey = activePlayer + "-GamesPlayed";
+                dict.Add("NumOfPlayedGames", numOfPlayedGames);
+
+                trainingThread = new Thread(dNN.TrainModel);
+                trainingThread.Start(dict);
+            }
+        }
+
+        if (dNN.trainingComplete && !trainingComplete)
+        {
+            trainingComplete = true;
+
+            activePlayer = PlayerPrefs.GetString("ActivePlayer");
+            var localModelDateKey = activePlayer + "-modelDownloadedDate";
+            var trainingIterationsKey = activePlayer + "-modelIterations";
+
+            int modelIterations = 0;
+            if (PlayerPrefs.HasKey(trainingIterationsKey))
+            {
+                modelIterations = PlayerPrefs.GetInt(trainingIterationsKey) + 1;
+            }
+            else
+            {
+                modelIterations = 1;
+            }
+
+            PlayerPrefs.SetInt(trainingIterationsKey, modelIterations);
+
+            PlayerPrefs.SetString(localModelDateKey, DateTime.Now.ToString());
+
+            if ((modelIterations > 0) && (modelIterations % 10 == 0))
+            {
+                PlayerPrefs.SetInt(activePlayer + "-dataItems", 0);
+
+                if (trainingComplete && !dNN.weightsUploaded)
+                {
+                    StartCoroutine(
+                        dNN.UploadNewWeightsANNSGD(localDataAmount + trainingDataList.Count)
+                    );
+                }
+            }
+        }
+    }
+
+    /*
+    The ReadStartingHr() function is used to read the user's starting heart rate.
+    If the application is running in an editor or is not connected to a device, a random heart rate value between 60 and 70 is assigned to startingHr.
+    If the application is connected to a device, startingHr is set to the value of the heart rate data received from the device.
+    */
+
+    void ReadStartingHr()
+    {
+        if (Application.isEditor)
+        {
+            startingHr = UnityEngine.Random.Range(60, 70);
+        }
+       
+    }
+
+    /*
+    The ReadHRData() function is used to read the user's heart rate data.
+    If the application is running in an editor or is not connected to a device, a random heart rate value between 60 and 70 is assigned to hR if the current track is track 0, or a random value between 65 and 80 is assigned if the current track is track 1.
+    If the application is connected to a device, hR is set to the value of the heart rate data received from the device. hR is then added to the hrReadings list.
+    If the baseline acquisition process is complete and the training process is complete, hR is also added to the checkStateHr list.
+    */
+
+    void ReadHRData()
+    {
+        int hR = 0;
+
+        if (Application.isEditor)
+        {
+            if (trackSwitcher.switchVal == 0)
+            {
+                hR = UnityEngine.Random.Range(60, 70);
+            }
+            else
+            {
+                hR = UnityEngine.Random.Range(65, 80);
+            }
+        }
+
+
+        outputHR = hR;
+        hrReadings.Add(hR);
+
+        //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
+        if (baseLineAcquisition.baselineGathered && dNN.trainingComplete)
+        {
+            checkStateHr.Add(hR);
+        }
+    }
+
+    /*
+    The ReadRRData() function is used to read the user's respiratory rate data.
+    If the application is running in an editor or is not connected to a device, a random respiratory rate value between 800 and 1100 is assigned to RR if the current track is track 0, or a random value between 700 and 850 is assigned if the current track is track 1.
+    If the application is connected to a device, RR is set to the value of the respiratory rate data received from the device. RR is then added to the RRReadings list and the affective state of the current track is added to the affectiveStatesList.
+    If the baseline acquisition process is complete and the training process is complete, RR is also added to the checkStateRR list.
+    */
+
+    void ReadRRData()
+    {
+        Debug.Log("Read Data");
+        int RR = 0;
+
+        if (Application.isEditor)
+        {
+            if (trackSwitcher.switchVal == 0)
+            {
+                RR = UnityEngine.Random.Range(800, 1100);
+            }
+            else
+            {
+                RR = UnityEngine.Random.Range(700, 850);
+            }
+        }
+        
+
+        outputRR = RR;
+        //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
+        if (baseLineAcquisition.baselineGathered && dNN.trainingComplete)
+        {
+            checkStateRR.Add(RR);
+        }
+
+        RRReadings.Add(RR);
+        affectiveStatesList.Add(Helpers.AffectiveState(trackSetup.trackId));
+    }
+
+    /*
+    The CheckPlayerState() function is used to check the user's current state based on their heart rate and respiratory rate data.
+    If the baseline acquisition process is complete and the training process is complete, this function will be executed every time the hrReadings list reaches its limit (30).
+    The function calculates the root mean square of successive differences (RMSSD) of the last 30 values in the checkStateRR list and the change in heart rate from the starting heart rate based on the last 30 values in the checkStateHr list.
+    These values are then normalized and used as input to the neural network to predict the user's current state.
+    The predicted state is then compared to the affective state of the current track to determine if the track should be changed.
+    */
+    void CheckPlayerState()
+    {
+        Debug.Log("Check State");
+
+        //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
+        if (baseLineAcquisition.baselineGathered && dNN.trainingComplete)
+        {
+            if (checkStateHr.Count == hrReadingsLimit)
+            {
+                List<int> rrValues = checkStateRR
+                    .Skip(Math.Max(0, checkStateRR.Count() - 30))
+                    .ToList();
+
+                double rmssd = Helpers.RMSSD(rrValues);
+                double hrChange = Helpers.HRChange(checkStateHr, startingHr);
+
+                double[] input = { Math.Round((Double)rmssd, 2), Math.Round((Double)hrChange, 2) };
+
+                double[] normalizedInput = Helpers.NormalizeData(
+                    input,
+                    minRRValue,
+                    maxRRValue,
+                    minHRValue,
+                    maxHRValue
+                );
+
+                var result = dNN.neuralNetworkBackProp.ComputeOutputs(normalizedInput);
+                int output;
+
+                result = Helpers.ProbsToClasses(result);
+
+                double[] affectState = Array.ConvertAll(
+                    Helpers.AffectiveState(trackSetup.track).Split(','),
+                    Double.Parse
+                );
+
+                List<double> resList = new List<double>()
+                {
+                    normalizedInput[0],
+                    normalizedInput[1],
+                    affectState[0],
+                    affectState[1]
+                };
+                double[] resultArr = resList.ToArray();
+                testDataList.Add(resultArr);
+
+                if (result[0] < result[1])
+                {
+                    output = 0;
+                }
+                else
+                {
+                    output = 1;
+                }
+
+                //ensure no infinite loop occurs
+                if (baseLineAcquisition.baselineGathered)
+                {
+                    if (prevStates.Count < 2)
+                    {
+                        prevStates.Add(output);
+                    }
+                    else
+                    {
+                        if (prevStates[0] == output && prevStates[1] == output)
+                        {
+                            //change the value
+                            if (output == 0)
+                            {
+                                output = 1;
+                            }
+                            else
+                            {
+                                output = 0;
+                            }
+
+                            prevStates[0] = prevStates[1];
+                            prevStates[1] = output;
+                        }
+                        else
+                        {
+                            prevStates[0] = prevStates[1];
+                            prevStates[1] = output;
+                        }
+                    }
+                }
+
+                currentState = output;
+                if (currentState == 0)
+                {
+                    trackSetup.trackId = 1;
+                }
+                else if (currentState == 1)
+                {
+                    trackSetup.trackId = 0;
+                }
+
+                checkStateRR = new List<int>();
+                checkStateHr = new List<int>();
+            }
+        }
+    }
+
+    public IEnumerator UploadTrainData(List<double[]> trainDataList)
+    {
+        var uploadString = string.Empty;
+
+        foreach (double[] trainDataItem in trainDataList)
+        {
+            string tempString =
+                trainDataItem[0]
+                + ","
+                + trainDataItem[1]
+                + ","
+                + trainDataItem[2]
+                + ","
+                + trainDataItem[3]
+                + ";";
+            uploadString = uploadString + tempString;
+        }
+
+        UnityWebRequest req = UnityWebRequest.Get(
+            "https://morpheusapi.azurewebsites.net/api/Data/PostTrainData?data="
+                + uploadString
+                + "&mode=train"
+        );
+
+        yield return req.SendWebRequest();
+    }
+
+    public IEnumerator UploadTestData(List<double[]> testDataList)
+    {
+        string uploadString = string.Empty;
+
+        foreach (double[] testDataItem in testDataList)
+        {
+            string tempString =
+                testDataItem[0]
+                + ","
+                + testDataItem[1]
+                + ","
+                + testDataItem[2]
+                + ","
+                + testDataItem[3]
+                + ";";
+            uploadString = uploadString + tempString;
+        }
+
+        UnityWebRequest req = UnityWebRequest.Get(
+            "https://morpheusapi.azurewebsites.net/api/Data/PostTrainData?data="
+                + uploadString
+                + "&mode=test"
+        );
+        yield return req.SendWebRequest();
+    }
+
+    IEnumerator GetModelData(System.Action<DownloadModel> callbackOnFinish)
+    {
+        //UnityWebRequest www = UnityWebRequest.Get("https://localhost:44309/api/Test");
+        UnityWebRequest www = UnityWebRequest.Get("https://morpheusapi.azurewebsites.net/api/Test");
+
+        yield return www.SendWebRequest();
+
+        if (www.isNetworkError || www.isHttpError)
+        {
+            Debug.Log(www.error);
+            callbackOnFinish(new DownloadModel());
+        }
+        else
+        {
+            Debug.Log(www.downloadHandler.text);
+
+            if (!String.IsNullOrEmpty(www.downloadHandler.text))
+            {
+                downloadedData = JsonConvert.DeserializeObject<DownloadModel>(
+                    www.downloadHandler.text
+                ); // Array.ConvertAll(www.downloadHandler.text.Split(','), double.Parse);
+            }
+
+            callbackOnFinish(downloadedData);
+        }
+    }
+
+    public class DataItem
+    {
+        public string data { get; set; }
+        public double error { get; set; }
+        public int totalDataItems { get; set; }
+    }
+
+    public class DownloadModel
+    {
+        public string date { get; set; }
+        public string models { get; set; }
+    }
+}

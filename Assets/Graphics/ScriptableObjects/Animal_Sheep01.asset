@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6435a71abcbba934eaf3665208d8a446, type: 3}
+  m_Name: Animal_Sheep01
+  m_EditorClassIdentifier: 
+  DebugSettings:
+    _debugOn: 0
+    custom1: Jump
+    c_custom1: {r: 0.38470098, g: 0.6132076, b: 0.44971123, a: 1}
+    custom2: Land
+    c_custom2: {r: 0.9150943, g: 0.69060785, b: 0.31510323, a: 1}
+    custom3: 
+    c_custom3: {r: 0.7452705, g: 0.4669811, b: 1, a: 1}
+    Comments: "pause Color.black;\r\nidle: Color.blue;\r\nflee: Color.red;\r\nflock:
+      Color.yellow;\r\nseek: Color.green;\r\nturn: Color.magenta;\r\ndefault: Color.white"
+  shoalGeneral:
+    c_global: {r: 1, g: 1, b: 1, a: 1}
+    LandAnimal: 1
+    UpRightFactor: 5
+    _animalPrefabs:
+    - {fileID: 7955224003916227613, guid: 26c519af51b452f44bbe25984d5087d5, type: 3}
+    _numAnimals: 100
+    _padding: 1.5
+    _AnimalSizeMinMax: {x: 0.5, y: 0.7}
+    _followRadiusMinMax: {x: 0.4, y: 1.4}
+  _animalPrefab: {fileID: 0}
+  behaviorDefault:
+    c_animalIdle: {r: 0, g: 0, b: 1, a: 1}
+    ProbabilityEnterIdle: 1
+    _AnimalSpeedMinMax: {x: 0, y: 0}
+    speedVariable: 0.1
+    _AnimalRotSpeedMinMax: {x: 0.1, y: 0.5}
+  behaviorSeek:
+    c_animalSeek: {r: 0, g: 1, b: 0, a: 1}
+    ProbabilityEnterSeek: 1000
+    _AnimalSpeedMinMax: {x: 0.1, y: 2}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 0.5, y: 2}
+  behaviorFlee:
+    c_animalFlee: {r: 1, g: 0, b: 0, a: 1}
+    _AnimalSpeedMinMax: {x: 1, y: 2}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 1, y: 3}
+    _dangerRadius: 12
+    ReactionTime:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0.14261153
+        outSlope: 0.14261153
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0.2904905
+      - serializedVersion: 3
+        time: 0.05011236
+        value: 3.5024366
+        inSlope: 0.0235995
+        outSlope: 0.0235995
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 1
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.74821264
+        value: 1.0737269
+        inSlope: -0.97956747
+        outSlope: -0.97956747
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.16182576
+        outWeight: 0.15359241
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0.040840697
+        outSlope: 0.040840697
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.1269967
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    _reactionMagnitude: 4
+    _reactionLength: 0.1
+  behaviorFlocking:
+    c_animalFlocking: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    ProbabilityEnterFlocking: 100
+    ProbabilityExitFlocking: 4
+    _AnimalSpeedMinMax: {x: 1, y: 2}
+    speedVariable: 3
+    _AnimalRotSpeedMinMax: {x: 2, y: 5}
+    _neighbourDistance: 5
+    _avoidDistance: 0.3
+    _weight: 2
+  behaviorTurn:
+    c_animalTurning: {r: 1, g: 0, b: 1, a: 1}
+    _AnimalSpeedMinMax: {x: 1.5, y: 3}
+    _AnimalRotSpeedMinMax: {x: 1, y: 4}
+    speedVariable: 4
+  Comments: "case State.pause: return Color.black;\r\ncase State.idle: return Color.blue;\r\ncase
+    State.flee: return Color.red;\r\ncase State.flock: return Color.yellow;\r\ncase
+    State.seek: return Color.green;\r\ncase State.turn: return Color.magenta;\r\ndefault:
+    return Color.white"

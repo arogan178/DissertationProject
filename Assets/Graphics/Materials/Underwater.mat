@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Underwater
+  m_Shader: {fileID: 4800000, guid: c05cf6f733d63c140beb8207a856f60d, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - WaterDepth: 40
+    - WaterLevel: 100
+    - _WaterDepth: 2
+    - _WaterLevel: 100
+    m_Colors:
+    - TopColor: {r: 0, g: 0, b: 0, a: 0}
+    - WaterColor: {r: 0.3037113, g: 0.7658023, b: 0.990566, a: 0.46666667}
+    - _TopColor: {r: 0.5849056, g: 0.26210395, b: 0.26210395, a: 0}
+    - _WaterColor: {r: 0, g: 1, b: 0.19417739, a: 0.6784314}

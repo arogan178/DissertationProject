@@ -1,0 +1,97 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6435a71abcbba934eaf3665208d8a446, type: 3}
+  m_Name: Animal_JellyFish01
+  m_EditorClassIdentifier: 
+  DebugSettings:
+    _debugOn: 1
+    custom1: 
+    c_custom1: {r: 1, g: 1, b: 1, a: 1}
+    custom2: 
+    c_custom2: {r: 1, g: 1, b: 1, a: 1}
+    custom3: 
+    c_custom3: {r: 1, g: 1, b: 1, a: 1}
+    Comments: 
+  shoalGeneral:
+    c_global: {r: 1, g: 1, b: 1, a: 1}
+    LandAnimal: 0
+    UpRightFactor: 1
+    _animalPrefabs:
+    - {fileID: 9199083161122989087, guid: beb9ee85eda45aa45878c0baa550c96f, type: 3}
+    _numAnimals: 50
+    _padding: 0.5
+    _AnimalSizeMinMax: {x: 0.1, y: 0.3}
+    _followRadiusMinMax: {x: 0.4, y: 1.4}
+  _animalPrefab: {fileID: 0}
+  behaviorDefault:
+    c_animalIdle: {r: 0, g: 0, b: 1, a: 1}
+    ProbabilityEnterIdle: 500
+    _AnimalSpeedMinMax: {x: 0, y: 0.5}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 0.3, y: 2}
+  behaviorSeek:
+    c_animalSeek: {r: 0, g: 1, b: 0, a: 1}
+    ProbabilityEnterSeek: 100
+    _AnimalSpeedMinMax: {x: 1, y: 4}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 0.1, y: 1}
+  behaviorFlee:
+    c_animalFlee: {r: 1, g: 0, b: 0, a: 1}
+    _AnimalSpeedMinMax: {x: 1.5, y: 6}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 0.1, y: 0.7}
+    _dangerRadius: 7
+    ReactionTime:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 0
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    _reactionMagnitude: 1
+    _reactionLength: 5
+  behaviorFlocking:
+    c_animalFlocking: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    ProbabilityEnterFlocking: 1000
+    ProbabilityExitFlocking: 1
+    _AnimalSpeedMinMax: {x: 0.8, y: 3}
+    speedVariable: 1
+    _AnimalRotSpeedMinMax: {x: 0.1, y: 1}
+    _neighbourDistance: 12
+    _avoidDistance: 0.3
+    _weight: 1.3
+  behaviorTurn:
+    c_animalTurning: {r: 1, g: 0, b: 1, a: 1}
+    _AnimalSpeedMinMax: {x: 1.5, y: 6}
+    _AnimalRotSpeedMinMax: {x: 0.1, y: 0.7}
+    speedVariable: 1
+  Comments: "case State.pause: return Color.black;\r\ncase State.idle: return Color.blue;\r\ncase
+    State.flee: return Color.red;\r\ncase State.flock: return Color.yellow;\r\ncase
+    State.seek: return Color.green;\r\ncase State.turn: return Color.magenta;\r\ndefault:
+    return Color.white"
