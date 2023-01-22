@@ -1045,9 +1045,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 611658836}
-        m_TargetAssemblyTypeName: SwitchToVR, Assembly-CSharp
-        m_MethodName: button
+      - m_Target: {fileID: 1768749668}
+        m_TargetAssemblyTypeName: hyperateSocket, Assembly-CSharp
+        m_MethodName: EnterVR
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1970,7 +1970,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1768749666}
   - component: {fileID: 1768749668}
-  - component: {fileID: 1768749667}
   m_Layer: 0
   m_Name: GameManger
   m_TagString: Untagged
@@ -1993,23 +1992,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1768749667
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1768749664}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 144c2c285377b304aa59fcb9dce9b08e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  nextSceneButton: {fileID: 611658833}
-  textBox: {fileID: 314142499}
-  promptText: {fileID: 1261122101}
-  canvas: {fileID: 0}
-  inputValueCount: 0
 --- !u!114 &1768749668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2517,6 +2499,6 @@ SpriteRenderer:
   m_Size: {x: 4.18, y: 3.41}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0

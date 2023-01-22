@@ -8,6 +8,7 @@ using NativeWebSocket;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR.Management;
 using TMPro;
+using Google.XR.Cardboard;
 
 public class hyperateSocket : MonoBehaviour
 {
@@ -96,6 +97,12 @@ public class hyperateSocket : MonoBehaviour
 #if !UNITY_WEBGL || UNITY_EDITOR
         websocket.DispatchMessageQueue();
 #endif
+
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            // Esc key is pressed, load previous scene
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+        }
     }
 
     async void SendWebSocketMessage()
@@ -163,42 +170,35 @@ public class hyperateSocket : MonoBehaviour
             // Show the prompt
             promptText.gameObject.SetActive(true);
             promptText.text = "Please turn your phone to landscape mode to continue.";
-            //nextSceneButton.interactable = false;
-            nextSceneButton.interactable = (inputValueCount >= 5);
+            nextSceneButton.interactable = false;
+            //nextSceneButton.interactable = (inputValueCount >= 5);
         }
     }
 
     public void EnterVR()
     {
         promptText.gameObject.transform.parent.gameObject.SetActive(false);
+        if (Api.HasNewDeviceParams())
+        {
+            Api.ReloadDeviceParams();
+        }
+
         StartCoroutine(StartXR());
-        /*         if (Api.HasNewDeviceParams())
-                {
-                    Api.ReloadDeviceParams();
-                } */
     }
 
     private IEnumerator StartXR()
     {
         Debug.Log("Initializing XR...");
         yield return XRGeneralSettings.Instance.Manager.InitializeLoader();
+        Debug.Log(XRGeneralSettings.Instance.Manager.InitializeLoader());
 
-        if (XRGeneralSettings.Instance.Manager.activeLoader == null)
-        {
-            Debug.LogError("Initializing XR Failed.");
-        }
-        else
-        {
-            Debug.Log("XR initialized.");
+        XRGeneralSettings.Instance.Manager.InitializeLoaderSync();
+        Debug.Log("XR initialized.");
 
-            Debug.Log("Starting XR...");
-            XRGeneralSettings.Instance.Manager.StartSubsystems();
-            Debug.Log("XR started.");
-
-            SceneManager.LoadScene("AffectiveGame");
-        }
-        Debug.Log(XRGeneralSettings.Instance);
-        Debug.Log(XRGeneralSettings.Instance.Manager);
+        Debug.Log("Starting XR...");
+        XRGeneralSettings.Instance.Manager.StartSubsystems();
+        Debug.Log("XR started.");
+        SceneManager.LoadScene("AffectiveGame");
     }
 }
 

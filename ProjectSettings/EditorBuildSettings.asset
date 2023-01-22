@@ -9,9 +9,6 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: 4c624044f6c5e0a4cb8cfb7fc54eea6f
   - enabled: 1
-    path: Assets/Scenes/RandomGame.unity
-    guid: e16d8d8f820f8474eb2ffc3afec25f79
-  - enabled: 1
     path: Assets/Scenes/ChoosePlayerScene.unity
     guid: 0f12b552f3b4f154892fbe534df69465
   - enabled: 1

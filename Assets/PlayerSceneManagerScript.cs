@@ -25,6 +25,20 @@ public class PlayerSceneManagerScript : MonoBehaviour
     //    PlayerPrefs.DeleteAll();
     //}
 
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            if (PlayerPrefs.HasKey("Name"))
+            {
+                PlayerPrefs.Save();
+            }
+            // Esc key is pressed, load previous scene
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
+        }
+    }
+
     public void OpenNewUserPanel(Button button)
     {
         button.gameObject.transform.GetChild(1).gameObject.SetActive(true);
@@ -40,18 +54,6 @@ public class PlayerSceneManagerScript : MonoBehaviour
         var name = playerNameField.text;
         var deviceID = deviceIdField.text;
 
-        /*         if(name != "")
-                {
-                    string userPath = Application.persistentDataPath + "/Users/"+name+".txt";
-                    StreamWriter combinedDf = File.CreateText(userPath);
-                    combinedDf.Close();
-        
-                    PlayerPrefs.SetString("ActivePlayer", name);
-                    //CloseNewUserPanel(button);
-                    //btnListControl.RefreshList(Application.persistentDataPath + "/Users");
-                    PlayerPrefs.SetInt("NewPlayer", 1);
-                } */
-
         if (name != "")
         {
             string userPath = Application.persistentDataPath + "/Users/" + name + ".txt";
@@ -59,14 +61,10 @@ public class PlayerSceneManagerScript : MonoBehaviour
             combinedDf.Close();
 
             PlayerPrefs.SetString("ActivePlayer", name);
-            //CloseNewUserPanel(button);
-            //btnListControl.RefreshList(Application.persistentDataPath + "/Users");
             PlayerPrefs.SetInt("NewPlayer", 1);
             PlayerPrefs.SetString("DeviceID_" + name, deviceID);
 
             SceneManager.LoadScene("SearchDevices");
-            //SceneManager.LoadScene("TransitionScene");
         }
-        //Debug.Log(PlayerPrefs.ToString());
     }
 }

@@ -8,8 +8,18 @@ using UnityEngine.XR.Management;
 
 public class MenuManager : MonoBehaviour
 {
-    GameObject canvasElement;
-    GameObject heartRatePlugin;
+    public void Update()
+    {
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            // Esc key is pressed, load previous scene
+            if (PlayerPrefs.HasKey("Name"))
+            {
+                PlayerPrefs.Save();
+            }
+            Application.Quit();
+        }
+    }
 
     public void LoadVR()
     {
@@ -44,6 +54,14 @@ public class MenuManager : MonoBehaviour
         }
         Debug.Log(XRGeneralSettings.Instance);
         Debug.Log(XRGeneralSettings.Instance.Manager);
+    }
+
+    async void OnApplicationQuit()
+    {
+        if (PlayerPrefs.HasKey("Name"))
+        {
+            PlayerPrefs.Save();
+        }
     }
 
     public void Quit()

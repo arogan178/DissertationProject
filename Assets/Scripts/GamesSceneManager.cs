@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.XR;
+using UnityEngine.XR.Management;
 
 public class GamesSceneManager : MonoBehaviour
 {
@@ -15,6 +16,10 @@ public class GamesSceneManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Screen.sleepTimeout = SleepTimeout.NeverSleep;
+        Screen.autorotateToPortrait = false;
+        Screen.autorotateToPortraitUpsideDown = false;
+
         var activePlayer = PlayerPrefs.GetString("ActivePlayer");
         var dataLinesKey = activePlayer + "-dataLines";
         var playedGamesKey = activePlayer + "-GamesPlayed";
@@ -47,42 +52,15 @@ public class GamesSceneManager : MonoBehaviour
     IEnumerator SwitchTo2D()
     {
         // Empty string loads the "None" device.
-        XRSettings.LoadDeviceByName("");
+        XRGeneralSettings.Instance.Manager.StopSubsystems();
 
         // Must wait one frame after calling `XRSettings.LoadDeviceByName()`.
         yield return null;
-
+        XRGeneralSettings.Instance.Manager.DeinitializeLoader();
         // Not needed, since loading the None (`""`) device takes care of this.
         // XRSettings.enabled = false;
 
         // Restore 2D camera settings.
-        ResetCameras();
-    }
-
-    // Resets camera transform and settings on all enabled eye cameras.
-    void ResetCameras()
-    {
-        // Camera looping logic copied from GvrEditorEmulator.cs
-        for (int i = 0; i < Camera.allCameras.Length; i++)
-        {
-            Camera cam = Camera.allCameras[i];
-            if (cam.enabled && cam.stereoTargetEye != StereoTargetEyeMask.None)
-            {
-
-                // Reset local position.
-                // Only required if you change the camera's local position while in 2D mode.
-                cam.transform.localPosition = Vector3.zero;
-
-                // Reset local rotation.
-                // Only required if you change the camera's local rotation while in 2D mode.
-                cam.transform.localRotation = Quaternion.identity;
-
-                // No longer needed, see issue github.com/googlevr/gvr-unity-sdk/issues/628.
-                // cam.ResetAspect();
-
-                // No need to reset `fieldOfView`, since it's reset automatically.
-            }
-        }
     }
 
     private void Update()
@@ -105,13 +83,11 @@ public class GamesSceneManager : MonoBehaviour
 
                 PlayerPrefs.SetInt(dataLinesKey, numOfLines);
                 PlayerPrefs.SetInt(playedGamesKey, numOfPlayedGames);
+                StartCoroutine(SwitchTo2D());
+                SceneManager.LoadScene("Menu");
+                PlayerPrefs.Save();
             }
-            catch (Exception e)
-            {
-
-            }
-            StartCoroutine(SwitchTo2D());
-            SceneManager.LoadScene("Menu");
+            catch (Exception e) { }
         }
     }
 }

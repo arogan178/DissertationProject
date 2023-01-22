@@ -15,12 +15,9 @@ using Newtonsoft.Json.Linq;
 using NativeWebSocket;
 using TMPro;
 using Unity.Notifications.Android;
-using UnityEngine.Android;
 
 public class NewHeartRateScript : MonoBehaviour
 {
-    private AndroidJavaObject m_NotificationBuilder;
-
     // HypeRate Script
     // Put your websocket Token ID here
     private string websocketToken =
@@ -103,7 +100,6 @@ public class NewHeartRateScript : MonoBehaviour
     //HypeRate Script
     async void Start()
     {
-        ServicePointManager.ServerCertificateValidationCallback = (a, b, c, d) => true;
         GetDeviceID();
         websocket.OnOpen += () =>
         {
@@ -197,9 +193,6 @@ public class NewHeartRateScript : MonoBehaviour
 
     private void Awake()
     {
-        Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        Screen.autorotateToPortrait = false;
-        Screen.autorotateToPortraitUpsideDown = false;
         GetDeviceID();
         websocket = new WebSocket("wss://app.hyperate.io/socket/websocket?token=" + websocketToken);
         Debug.Log("Connect!");
@@ -207,50 +200,41 @@ public class NewHeartRateScript : MonoBehaviour
         //Remove all notifications sent
         AndroidNotificationCenter.CancelAllDisplayedNotifications();
 
-        // Create a new vibration pattern
-        long[] vibrationPattern = { 1000, 2000, 1000, 2000 };
+        AndroidNotificationChannel channel1 = new AndroidNotificationChannel();
+        channel1.Id = "1";
+        channel1.Name = "Notifications 1";
+        channel1.Importance = Importance.High;
+        channel1.Description = "Affective State Triggered";
+        channel1.EnableVibration = true;
 
-        // Get the current context
-        AndroidJavaClass unityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-        AndroidJavaObject currentActivity = unityPlayer.GetStatic<AndroidJavaObject>(
-            "currentActivity"
-        );
-        int iconResourceId = Resources.Load<Sprite>("glasses").GetInstanceID();
+        AndroidNotificationCenter.RegisterNotificationChannel(channel1);
 
-        // Create the notification builder
-        m_NotificationBuilder = new AndroidJavaObject(
-            "android.app.Notification$Builder",
-            currentActivity
-        )
-            .Call<AndroidJavaObject>("setContentTitle", "My Notification")
-            .Call<AndroidJavaObject>("setContentText", "This is my notification text")
-            .Call<AndroidJavaObject>("setSmallIcon", iconResourceId);
+        AndroidNotificationChannel channel2 = new AndroidNotificationChannel();
+        channel2.Id = "2";
+        channel2.Name = "Notifications 2";
+        channel2.Importance = Importance.High;
+        channel2.Description = "Affective State Triggered";
+        channel2.EnableVibration = true;
 
-        // Set the vibration pattern
-        m_NotificationBuilder.Call("setVibration", vibrationPattern);
+        AndroidNotificationCenter.RegisterNotificationChannel(channel2);
 
-        // Send the notification
-        AndroidJavaObject notificationManager = currentActivity.Call<AndroidJavaObject>(
-            "getSystemService",
-            "notification"
-        );
-        notificationManager.Call(
-            "notify",
-            1,
-            m_NotificationBuilder.Call<AndroidJavaObject>("build")
-        );
+        AndroidNotificationChannel channel3 = new AndroidNotificationChannel();
+        channel3.Id = "3";
+        channel3.Name = "Notifications 3";
+        channel3.Importance = Importance.High;
+        channel3.Description = "Affective State Triggered";
+        channel3.EnableVibration = true;
 
-        /*
-                long[] vibrationPattern = { 1000, 2000, 1000, 2000 };
-                AndroidNotificationChannel channel = new AndroidNotificationChannel();
-                channel.Id = "1";
-                channel.Name = "Notifications Channel";
-                channel.Importance = Importance.Default;
-                channel.Description = "Affective State Triggered";
-                channel.EnableVibration = true;
-                channel.VibrationPattern = vibrationPattern;
-        
-                AndroidNotificationCenter.RegisterNotificationChannel(channel); */
+        AndroidNotificationCenter.RegisterNotificationChannel(channel3);
+
+        AndroidNotificationChannel channel4 = new AndroidNotificationChannel();
+        channel4.Id = "4";
+        channel4.Name = "Notifications 4";
+        channel4.Importance = Importance.High;
+        channel4.Description = "Affective State Triggered";
+        channel4.EnableVibration = true;
+
+        AndroidNotificationCenter.RegisterNotificationChannel(channel4);
 
         StartCoroutine(GetModelData(Initialize));
         trackSetup = UnityEngine.Object.FindObjectOfType<TrackSetup>();
@@ -663,21 +647,27 @@ public class NewHeartRateScript : MonoBehaviour
         var notification = new AndroidNotification();
         notification.Title = "";
         notification.Text = "";
-        notification.FireTime = System.DateTime.Now;
+        notification.FireTime = System.DateTime.Now.AddSeconds(1);
 
-        /*         var notification1 = new AndroidNotification();
-                notification1.Title = "";
-                notification1.Text = "";
-                notification1.FireTime = System.DateTime.Now.AddSeconds(1);
-        
-                var notification2 = new AndroidNotification();
-                notification2.Title = "";
-                notification2.Text = "";
-                notification2.FireTime = System.DateTime.Now.AddSeconds(2); */
+        var notification1 = new AndroidNotification();
+        notification1.Title = "";
+        notification1.Text = "";
+        notification1.FireTime = System.DateTime.Now.AddSeconds(1.5);
+
+        var notification2 = new AndroidNotification();
+        notification2.Title = "";
+        notification2.Text = "";
+        notification2.FireTime = System.DateTime.Now.AddSeconds(2);
+
+        var notification3 = new AndroidNotification();
+        notification3.Title = "";
+        notification3.Text = "";
+        notification3.FireTime = System.DateTime.Now.AddSeconds(2);
 
         AndroidNotificationCenter.SendNotification(notification, "1");
-        /*         AndroidNotificationCenter.SendNotification(notification1, "1");
-                AndroidNotificationCenter.SendNotification(notification2, "1"); */
+        AndroidNotificationCenter.SendNotification(notification1, "2");
+        AndroidNotificationCenter.SendNotification(notification2, "3");
+        AndroidNotificationCenter.SendNotification(notification3, "4");
     }
 
     public IEnumerator UploadTrainData(List<double[]> trainDataList)
