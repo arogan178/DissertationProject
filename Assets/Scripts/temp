@@ -1,0 +1,92 @@
+// Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// GameDataScript
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class GameDataScript : MonoBehaviour
+{
+    public static GameDataScript singleton;
+
+    public Text scoreText;
+
+    private int score;
+
+    public Text nudgingText;
+
+    public Text highScoreText;
+
+    private string[] nudgingMessages = new string[5]
+    {
+        "Well Done!",
+        "Keep Going!",
+        "Great Job!",
+        "Keep it up!",
+        "WHat a hit!"
+    };
+
+    private int displayedAt;
+
+    private int highScore;
+
+    private AudioSource[] sfx;
+
+    public int trackId;
+
+    private void OnDestroy()
+    {
+        if (sfx[3].isPlaying)
+        {
+            sfx[3].Stop();
+        }
+    }
+
+    private void Start()
+    {
+        sfx = GameObject.FindWithTag("gamedata").GetComponentsInChildren<AudioSource>();
+        nudgingText.enabled = true;
+        singleton = this;
+        if (PlayerPrefs.HasKey("highScore"))
+        {
+            highScore = PlayerPrefs.GetInt("highScore");
+        }
+        highScoreText.text = "High score: " + highScore;
+    }
+
+    private void Update()
+    {
+        if (score > 0 && score % 5 == 0 && displayedAt != score && !nudgingText.isActiveAndEnabled)
+        {
+            int num = Random.Range(0, nudgingMessages.Length);
+            nudgingText.text = nudgingMessages[num];
+            nudgingText.enabled = true;
+            StartCoroutine(Fade());
+        }
+    }
+
+    private IEnumerator Fade()
+    {
+        displayedAt = score;
+        yield return new WaitForSeconds(2f);
+        nudgingText.enabled = false;
+    }
+
+    public void UpdateScore(int s)
+    {
+        score += s;
+        if (score > highScore)
+        {
+            PlayerPrefs.SetInt("highScore", score);
+            highScore = score;
+            highScoreText.text = "High score: " + highScore;
+            nudgingText.enabled = true;
+            StartCoroutine(Fade());
+        }
+        if (scoreText != null)
+        {
+            scoreText.text = "Score: " + score;
+        }
+    }
+
+    private void OnApplicationQuit() { }
+}

@@ -17,19 +17,21 @@ public class EnemyBehaviorScript : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.tag == "projectile") {
+        if (collision.gameObject.tag == "projectile")
+        {
             target.GetComponent<FollowCubeManager>().isOccupied = false;
-            GameObject obj = Instantiate(explosion, gameObject.transform.position, Quaternion.identity);
+            GameObject obj = Instantiate(
+                explosion,
+                gameObject.transform.position,
+                Quaternion.identity
+            );
 
             Destroy(obj, 2.5f);
-        }    
+        }
     }
 
     // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    void Start() { }
 
     // Update is called once per frame
     void FixedUpdate()
@@ -38,10 +40,18 @@ public class EnemyBehaviorScript : MonoBehaviour
         {
             timeAlive = timeAlive + Time.deltaTime;
 
-            speed = 60.0f;// + Random.Range(0.0f, 5.0f);
+            speed = 60.0f; // + Random.Range(0.0f, 5.0f);
             float step = speed * Time.deltaTime; // calculate distance to move
-                                                 //transform.position = Vector3.MoveTowards(transform.position, target.transform.position, step);
-            transform.position = Vector3.MoveTowards(transform.position, new Vector3(target.transform.position.x, target.transform.position.y, target.transform.position.z), step);
+            //transform.position = Vector3.MoveTowards(transform.position, target.transform.position, step);
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                new Vector3(
+                    target.transform.position.x,
+                    target.transform.position.y,
+                    target.transform.position.z
+                ),
+                step
+            );
         }
         else
         {

@@ -8,6 +8,12 @@ using UnityEngine.XR.Management;
 
 public class MenuManager : MonoBehaviour
 {
+    private void start()
+    {
+        Screen.autorotateToLandscapeLeft = false;
+        Screen.autorotateToLandscapeRight = false;
+    }
+
     public void Update()
     {
         if (Input.GetKey(KeyCode.Escape))

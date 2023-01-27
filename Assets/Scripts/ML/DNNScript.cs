@@ -54,6 +54,7 @@ public class DNNScript : MonoBehaviour
     //Initialized
     public NeuralNetworkBackProp neuralNetworkBackProp;
 
+    private double crossEntropyError;
     private double modelErrorANNBP = 0.0f;
 
     //ANN BP Params
@@ -62,8 +63,7 @@ public class DNNScript : MonoBehaviour
 
     private int maxEpochsANNBP = 10;
     private double learnRateANNBP = 0.01;
-
-    private double momentumANNBP = 0.01;
+    private double momentumANNBP = 0.25;
 
     public void WriteAnalytics(List<double[]> trainData, List<double[]> testData)
     {
@@ -122,9 +122,11 @@ public class DNNScript : MonoBehaviour
         statisticsFile.WriteLine(
             "---------------------------------------------------------------------------------------------"
         );
-        statisticsFile.WriteLine("Number of Data Items (test): " + testData.Count.ToString());
+        statisticsFile.WriteLine("Number of Test Data Items: " + testData.Count.ToString());
         statisticsFile.WriteLine("ANN Back Prop");
-        statisticsFile.WriteLine("Model Accuracy (federated learning): " + acc7);
+        statisticsFile.WriteLine("Model Accuracy: " + acc7);
+        statisticsFile.WriteLine("Model Mean-Squared Error: " + modelErrorANNBP);
+        statisticsFile.WriteLine("Model Cross Entropy : " + crossEntropyError);
         statisticsFile.Close();
     }
 
@@ -181,6 +183,7 @@ public class DNNScript : MonoBehaviour
         );
         neuralNetworkBackProp.SetWeights(newWeightsANNBP);
         modelErrorANNBP = neuralNetworkBackProp.Error(trainData, verbose: false);
+        crossEntropyError = neuralNetworkBackProp.CrossEntropy(trainData, verbose: false);
 
         #region write local model
         newDeviceWeights = String.Empty;

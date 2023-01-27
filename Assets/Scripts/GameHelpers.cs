@@ -23,12 +23,11 @@ namespace Assets.Scripts
             var highScore = PlayerPrefs.GetInt("highScore");
             PlayerPrefs.DeleteAll();
 
-            PlayerPrefs.SetInt("highScore",highScore);
+            PlayerPrefs.SetInt("highScore", highScore);
             PlayerPrefs.SetInt(trainingIterationsKey, trainingIterations);
-            PlayerPrefs.SetInt(dataLinesKey,dataLines);
+            PlayerPrefs.SetInt(dataLinesKey, dataLines);
             PlayerPrefs.SetInt(activePlayer + "-dataItems", dataLinesNum);
-            PlayerPrefs.SetString(modelDateKey,modelDate);
-
+            PlayerPrefs.SetString(modelDateKey, modelDate);
         }
     }
 }

@@ -44,11 +44,20 @@ public class Helpers
     public static double HRChange(List<int> hrList, int startingHr)
     {
         List<int> hrDisplacements = new List<int>();
+        //Debug.Log("hrList " + JsonConvert.SerializeObject(hrList, Formatting.Indented));
+        //Debug.Log("startingHr " + JsonConvert.SerializeObject(startingHr, Formatting.Indented));
+
         foreach (int hr in hrList)
         {
             hrDisplacements.Add(hr - startingHr);
         }
-
+        /* Debug.Log(
+            "hrDisplacements " + JsonConvert.SerializeObject(hrDisplacements, Formatting.Indented)
+        );
+        Debug.Log(
+            "hrDisplacementsavg "
+                + JsonConvert.SerializeObject(hrDisplacements.Average(), Formatting.Indented)
+        ); */
         return hrDisplacements.Average();
     }
 
@@ -196,7 +205,6 @@ public class Helpers
             data[i][0] = (data[i][0] - minRRValue) / (maxRRValue - minRRValue);
             data[i][1] = (data[i][1] - minHRValue) / (maxHRValue - minHRValue);
         }
-
         return data;
     }
 
@@ -235,6 +243,8 @@ public class Helpers
     {
         double[] RRValues = new double[trainData.Count];
         double[] hRValues = new double[trainData.Count];
+        // Debug.Log("RRValues before " + JsonConvert.SerializeObject(RRValues, Formatting.Indented));
+        // Debug.Log("hRValues before " + JsonConvert.SerializeObject(hRValues, Formatting.Indented));
 
         for (int i = 0; i < trainData.Count; i++)
         {
@@ -244,18 +254,56 @@ public class Helpers
             hRValues[i] = hr;
         }
 
+        // Debug.Log("RRValues after " + JsonConvert.SerializeObject(RRValues, Formatting.Indented));
+        // Debug.Log("hRValues after " + JsonConvert.SerializeObject(hRValues, Formatting.Indented));
+
         double maxRRValue = RRValues.Max();
         double minRRValue = RRValues.Min();
         double maxHRValue = hRValues.Max();
         double minHRValue = hRValues.Min();
 
+        // Debug.Log("maxRRValue max " + JsonConvert.SerializeObject(maxRRValue, Formatting.Indented));
+        // Debug.Log("minRRValue min" + JsonConvert.SerializeObject(minRRValue, Formatting.Indented));
+        // Debug.Log("maxHRValue max" + JsonConvert.SerializeObject(maxHRValue, Formatting.Indented));
+        // Debug.Log("minHRValue min" + JsonConvert.SerializeObject(minHRValue, Formatting.Indented));
+
         for (int i = 0; i < trainData.Count; i++)
         {
+/*             Debug.Log(
+                "trainData"
+                    + i
+                    + 0
+                    + "before "
+                    + JsonConvert.SerializeObject(trainData[i][0], Formatting.Indented)
+            );
+            Debug.Log(
+                "trainData"
+                    + i
+                    + 1
+                    + "before "
+                    + JsonConvert.SerializeObject(trainData[i][1], Formatting.Indented)
+            ); */
             trainData[i][0] = (trainData[i][0] - minRRValue) / (maxRRValue - minRRValue);
             trainData[i][1] = (trainData[i][1] - minHRValue) / (maxHRValue - minHRValue);
+/*             Debug.Log(
+                "trainData"
+                    + i
+                    + 0
+                    + "result "
+                    + JsonConvert.SerializeObject(trainData[i][0], Formatting.Indented)
+            );
+            Debug.Log(
+                "trainData"
+                    + i
+                    + 1
+                    + "result "
+                    + JsonConvert.SerializeObject(trainData[i][1], Formatting.Indented)
+            ); */
         }
         #endregion
-
+/*         Debug.Log(
+            "trainData return " + JsonConvert.SerializeObject(trainData, Formatting.Indented)
+        ); */
         return trainData;
     }
 
@@ -297,7 +345,7 @@ public class Helpers
 
         string readData = File.ReadAllText(path);
         var dataModel = JsonConvert.DeserializeObject<List<ModelClass>>(readData);
-        Debug.Log("local "+JsonConvert.SerializeObject(dataModel));
+        //Debug.Log("local " + JsonConvert.SerializeObject(dataModel));
         return dataModel;
     }
 

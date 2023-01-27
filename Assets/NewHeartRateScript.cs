@@ -15,6 +15,9 @@ using Newtonsoft.Json.Linq;
 using NativeWebSocket;
 using TMPro;
 using Unity.Notifications.Android;
+using System.CodeDom.Compiler;
+using System.Runtime.Serialization;
+using System.Text;
 
 public class NewHeartRateScript : MonoBehaviour
 {
@@ -33,6 +36,7 @@ public class NewHeartRateScript : MonoBehaviour
 
     // End of HypeRate Script
     private DateTime serverModelDate;
+    private DateTime localModelDate;
     public double[] ANNmodelWeights = new double[27];
 
     List<int> prevStates = new List<int>();
@@ -203,7 +207,6 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationChannel channel1 = new AndroidNotificationChannel();
         channel1.Id = "1";
         channel1.Name = "Notifications 1";
-        channel1.Importance = Importance.High;
         channel1.Description = "Affective State Triggered";
         channel1.EnableVibration = true;
 
@@ -212,7 +215,6 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationChannel channel2 = new AndroidNotificationChannel();
         channel2.Id = "2";
         channel2.Name = "Notifications 2";
-        channel2.Importance = Importance.High;
         channel2.Description = "Affective State Triggered";
         channel2.EnableVibration = true;
 
@@ -221,7 +223,6 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationChannel channel3 = new AndroidNotificationChannel();
         channel3.Id = "3";
         channel3.Name = "Notifications 3";
-        channel3.Importance = Importance.High;
         channel3.Description = "Affective State Triggered";
         channel3.EnableVibration = true;
 
@@ -230,7 +231,6 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationChannel channel4 = new AndroidNotificationChannel();
         channel4.Id = "4";
         channel4.Name = "Notifications 4";
-        channel4.Importance = Importance.High;
         channel4.Description = "Affective State Triggered";
         channel4.EnableVibration = true;
 
@@ -249,6 +249,12 @@ public class NewHeartRateScript : MonoBehaviour
         if (downloadedData != null && !string.IsNullOrEmpty(downloadedData.ModelData))
         {
             Debug.Log("Downloaded Data is not null");
+
+            DateTime serverModelDate = DateTime.ParseExact(
+                downloadedData.Date,
+                "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+                CultureInfo.InvariantCulture
+            );
             serverModelDate = Convert.ToDateTime(downloadedData.Date);
 
             globalDataAmount = downloadedData.totalDataItems;
@@ -271,6 +277,7 @@ public class NewHeartRateScript : MonoBehaviour
         }
         if (newUser)
         {
+            Debug.Log("New User");
             //downloadedWeightsANNSGD = new double[27]; //27
             dNN.InitializeModelANNBackProp(downloadedWeightsANNSGD);
             ANNmodelWeights = downloadedWeightsANNSGD;
@@ -278,20 +285,20 @@ public class NewHeartRateScript : MonoBehaviour
         else
         {
             activePlayer = PlayerPrefs.GetString("ActivePlayer");
-            var localModelDateKey = activePlayer + "-modelDownloadedDate";
+            var localModelDateKey = activePlayer + "-localModelDate";
             var localData = Helpers.LoadModel(activePlayer);
 
-            Debug.Log("Local Data " + localData.ToString());
             var localWeightsANNSGD = Array.ConvertAll(
                 localData[0].modelData.Split(','),
                 Double.Parse
             );
-            Debug.Log("Local Data " + localWeightsANNSGD.ToString());
 
-            DateTime localModelDate;
+            Debug.Log("Local Data: " + localData.ToString());
+            Debug.Log("localWeightsANNSGD: " + localWeightsANNSGD.ToString());
+
             try
             {
-                localModelDate = Convert.ToDateTime(PlayerPrefs.GetString(localModelDateKey)).Date;
+                localModelDate = DateTime.Parse(PlayerPrefs.GetString(localModelDateKey));
             }
             catch (Exception)
             {
@@ -300,10 +307,16 @@ public class NewHeartRateScript : MonoBehaviour
 
             try
             {
-                var serverDate = Convert.ToDateTime(downloadedData.Date);
+                DateTimeOffset dateTimeOffset = DateTimeOffset.ParseExact(
+                    downloadedData.Date,
+                    "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
+                    CultureInfo.InvariantCulture
+                );
+                var serverDate = dateTimeOffset.DateTime;
                 if (DateTime.Compare(serverModelDate, localModelDate) > 0)
                 {
-                    Debug.Log("localWeightsANNSGD: " + string.Join(", ", localWeightsANNSGD));
+                    Debug.Log("Local Model Date: " + localModelDate);
+                    Debug.Log("Server Model Date: " + serverModelDate);
                     Debug.Log(
                         "downloadedWeightsANNSGD: " + string.Join(", ", downloadedWeightsANNSGD)
                     );
@@ -317,6 +330,7 @@ public class NewHeartRateScript : MonoBehaviour
                 }
                 else
                 {
+                    Debug.Log("Local Model Date > Server Model Date");
                     dNN.InitializeModelANNBackProp(localWeightsANNSGD);
                     ANNmodelWeights = localWeightsANNSGD;
                 }
@@ -352,10 +366,9 @@ public class NewHeartRateScript : MonoBehaviour
                 // Add the calculated RMSSD to the rmssdList
                 List<int> RRreadingsList = RRReadings;
                 Debug.Log("Vitals - RRreadingsList: " + string.Join(",", RRreadingsList.ToArray()));
+
                 RRReadings = new List<int>();
-
                 double rmssd = Helpers.RMSSD(RRreadingsList);
-
                 rmssdList.Add(rmssd);
                 rmssdText.text = rmssd.ToString("F3");
                 Debug.Log("Vitals - RRMSD: " + rmssd);
@@ -373,14 +386,12 @@ public class NewHeartRateScript : MonoBehaviour
             {
                 // Store the list of HR readings in a separate list, then clear the hrReadings list
                 // Calculate the maximum heart rate change for the HR readings
-                List<int> HRList = hrReadings;
-                hrReadings = new List<int>();
-                maxHRChange = Helpers.HRChange(HRList, startingHr);
-
                 // Loop through the rmssdList
-                Debug.Log("Vitals - rmssd count " + rmssdList.Count);
+                Debug.Log("Vitals - RMSSD Count: " + rmssdList.Count);
                 for (int i = 0; i < rmssdList.Count; i++)
                 {
+                    List<int> HRList = hrReadings;
+                    maxHRChange = Helpers.HRChange(HRList, startingHr);
                     // If the baseline has not been gathered
                     // Create an array with the RMSSD value, the maximum HR change, and the winning affective state
                     double[] resultArray = new double[]
@@ -390,17 +401,21 @@ public class NewHeartRateScript : MonoBehaviour
                         winningAffectiveStatesList.Last()[0],
                         winningAffectiveStatesList.Last()[1]
                     };
-
-                    // If the baseline has not been gathered
                     if (!baseLineAcquisition.baselineGathered)
                     {
                         // Add the array to the trainDataList
                         trainDataList.Add(resultArray);
-                        Debug.Log("trainDataList " + trainDataList.Count);
+                        Debug.Log("Info - trainDataList Count" + trainDataList.Count);
+                        Debug.Log(
+                            "Info - trainDataList "
+                                + JsonConvert.SerializeObject(trainDataList, Formatting.Indented)
+                        );
                     }
+                    // If the baseline has not been gathered
                 }
 
-                // Clear the rmssdList
+                // Clear the lists
+                hrReadings = new List<int>();
                 rmssdList = new List<double>();
             }
         }
@@ -452,8 +467,11 @@ public class NewHeartRateScript : MonoBehaviour
                     dataLinesNum = trainDataList.Count();
                     PlayerPrefs.SetInt(activePlayer + "-dataItems", trainDataList.Count());
                 }
+
                 trainDataList = Helpers.NormalizeTrainingData(trainDataList);
+
                 List<double[]> normalizedData = trainDataList;
+
                 dict.Add("DataPath", playerDataPath);
                 dict.Add("TrainingData", normalizedData);
                 dict.Add("DownloadedWeightsANNSGD", downloadedWeightsANNSGD);
@@ -479,7 +497,7 @@ public class NewHeartRateScript : MonoBehaviour
         }
         trainingComplete = true;
         activePlayer = PlayerPrefs.GetString("ActivePlayer");
-        string localModelDateKey = activePlayer + "-modelDownloadedDate";
+        string localModelDateKey = activePlayer + "-localModelDate";
         string trainingIterationsKey = activePlayer + "-modelIterations";
         int modelIterations;
 
@@ -512,14 +530,29 @@ public class NewHeartRateScript : MonoBehaviour
     void ReadStartingHr()
     {
         startingHr = HRValue;
-        Debug.Log("Vitals - RRreadingList starting hr " + startingHr);
+        Debug.Log("Vitals - Starting HR: " + startingHr);
     }
 
     //read the user's heart rate data.
     void ReadHRData()
     {
         hrText.text = HRValue.ToString();
-        hrReadings.Add(HRValue);
+
+        if (!Application.isEditor)
+        {
+            hrReadings.Add(HRValue);
+        }
+        else
+        {
+            if (trackSwitcher.switchVal != 0)
+            {
+                hrReadings.Add(UnityEngine.Random.Range(65, 80));
+            }
+            else
+            {
+                hrReadings.Add(UnityEngine.Random.Range(60, 70));
+            }
+        }
 
         //If the baseline is true and the training process is true, HR is added to the checkStateHr list.
         //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
@@ -536,7 +569,22 @@ public class NewHeartRateScript : MonoBehaviour
     void ReadRRData()
     {
         float RR = 0;
-        RR = ((60 / (float)HRValue) * 1000);
+
+        if (!Application.isEditor)
+        {
+            RR = ((60 / (float)HRValue) * 1000);
+        }
+        else
+        {
+            if (trackSwitcher.switchVal != 0)
+            {
+                RR = UnityEngine.Random.Range(700, 850);
+            }
+            else
+            {
+                RR = UnityEngine.Random.Range(800, 1100);
+            }
+        }
         rrIntervalText.text = ((int)RR).ToString();
 
         //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
@@ -547,19 +595,17 @@ public class NewHeartRateScript : MonoBehaviour
 
         RRReadings.Add((int)RR);
         affectiveStatesList.Add(Helpers.AffectiveState(trackSetup.trackId));
-        Debug.Log("Vitals - RRreadingsList read: " + string.Join(",", RRReadings.ToArray()));
     }
 
     /*
-    The CheckPlayerState() is used to check the user's current state based on their heart rate and respiratory rate data.
-    If the baseline and  training process is complete,  function will execut every time the hrReadings list reaches its limit (30).
-    Calculate RMSSD of the last 30 values in  checkStateRR list and  change in HR from the starting HR based on the last 30 values in the checkStateHr list.
-    Values are then normalized and used as input to the neural network to predict the user's current state.
-    The predicted state is then compared to the affective state of the current track to determine if the track should be changed.
-    */
+   The CheckPlayerState() is used to check the user's current state based on their heart rate and respiratory rate data.
+   If the baseline and  training process is complete,  function will execut every time the hrReadings list reaches its limit (30).
+   Calculate RMSSD of the last 30 values in  checkStateRR list and  change in HR from the starting HR based on the last 30 values in the checkStateHr list.
+   Values are then normalized and used as input to the neural network to predict the user's current state.
+   The predicted state is then compared to the affective state of the current track to determine if the track should be changed.
+   */
     private void CheckPlayerState()
     {
-        Debug.Log("Check State");
         if (
             !baseLineAcquisition.baselineGathered
             || !dNN.trainingComplete
@@ -568,6 +614,7 @@ public class NewHeartRateScript : MonoBehaviour
         {
             return;
         }
+        Debug.Log("In Check State");
         // Take the last 30 elements of checkStateRR list and calculate RMSSD
         // Calculate change in HR between startingHr and HR readings in checkStateHr list
         double rmssd = Helpers.RMSSD(
@@ -638,8 +685,8 @@ public class NewHeartRateScript : MonoBehaviour
         //Clear the checkStateRR and checkStateHr lists.
         checkStateRR = new List<int>();
         checkStateHr = new List<int>();
-        Debug.Log("Testing Data beforeupload: " + string.Join(", ", testDataList));
-        Debug.Log("Training Data beforeupload: " + string.Join(", ", trainDataList));
+        Debug.Log("TestDataList - " + Newtonsoft.Json.JsonConvert.SerializeObject(testDataList));
+        Debug.Log("TrainDataList - " + Newtonsoft.Json.JsonConvert.SerializeObject(trainDataList));
     }
 
     void SendVibrationMessageToSmartWatch()
@@ -647,12 +694,12 @@ public class NewHeartRateScript : MonoBehaviour
         var notification = new AndroidNotification();
         notification.Title = "";
         notification.Text = "";
-        notification.FireTime = System.DateTime.Now.AddSeconds(1);
+        notification.FireTime = System.DateTime.Now;
 
         var notification1 = new AndroidNotification();
         notification1.Title = "";
         notification1.Text = "";
-        notification1.FireTime = System.DateTime.Now.AddSeconds(1.5);
+        notification1.FireTime = System.DateTime.Now.AddSeconds(1);
 
         var notification2 = new AndroidNotification();
         notification2.Title = "";
@@ -662,7 +709,7 @@ public class NewHeartRateScript : MonoBehaviour
         var notification3 = new AndroidNotification();
         notification3.Title = "";
         notification3.Text = "";
-        notification3.FireTime = System.DateTime.Now.AddSeconds(2);
+        notification3.FireTime = System.DateTime.Now.AddSeconds(3);
 
         AndroidNotificationCenter.SendNotification(notification, "1");
         AndroidNotificationCenter.SendNotification(notification1, "2");

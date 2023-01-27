@@ -7,8 +7,6 @@ using System.Net;
 using System.Net.Sockets;
 using UnityEngine.Networking;
 using System.IO;
-using TMPro;
-using UnityEngine.Android;
 
 public class GameManagerScript : MonoBehaviour
 {

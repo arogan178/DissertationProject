@@ -36,47 +36,14 @@ public class BaseLineAcquisition : MonoBehaviour
             {
                 baselineGathered = true;
             }
-
-            //if (hrScript.newUser)
-            //{
-            //    if (elapsedTime < 240)
-            //    {
-            //        if (elapsedTime >= 0 && elapsedTime <= 120)
-            //        {
-            //            trackSetup.trackId = 1;
-            //        }
-            //        else if (elapsedTime > 120 && elapsedTime <= 240)
-            //        {
-            //            trackSetup.trackId = 0;
-            //        }
-
-            //        elapsedTime = elapsedTime + Time.deltaTime;
-            //    }
-            //    else
-            //    {
-            //        baselineGathered = true;
-            //    }
-            //}
-            //else
-            //{
             if (elapsedTime < 240)
-                {
-                    //if (elapsedTime >= 0 && elapsedTime <= 120)
-                    //{
-                    //    trackSetup.trackId = 1;
-                    //}
-                    //else if (elapsedTime > 60 && elapsedTime <= 240)
-                    //{
-                    //    trackSetup.trackId = 0;
-                    //}
-
-                    elapsedTime = elapsedTime + Time.deltaTime;
-                }
-                else
-                {
-                    baselineGathered = true;
-                }
-            //}
+            {
+                elapsedTime = elapsedTime + Time.deltaTime;
+            }
+            else
+            {
+                baselineGathered = true;
+            }
         }
     }
 
@@ -84,7 +51,5 @@ public class BaseLineAcquisition : MonoBehaviour
     {
         hrScript = GameObject.FindObjectOfType<NewHeartRateScript>();
         trackSetup = GameObject.FindObjectOfType<TrackSetup>();
-
-        //PlayerPrefs.SetInt("currentState", 1);
     }
 }

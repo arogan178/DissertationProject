@@ -26,19 +26,6 @@ public class PlayerSceneManagerScript : MonoBehaviour
     //}
 
 
-    void Update()
-    {
-        if (Input.GetKey(KeyCode.Escape))
-        {
-            if (PlayerPrefs.HasKey("Name"))
-            {
-                PlayerPrefs.Save();
-            }
-            // Esc key is pressed, load previous scene
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
-        }
-    }
-
     public void OpenNewUserPanel(Button button)
     {
         button.gameObject.transform.GetChild(1).gameObject.SetActive(true);

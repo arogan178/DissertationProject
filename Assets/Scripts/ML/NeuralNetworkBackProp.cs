@@ -72,6 +72,14 @@ namespace Assets.ML
             SetWeights(initialWeights);
         }
 
+        private static void ShowVector(double[] vector, int dec)
+        {
+            for (int i = 0; i < vector.Length; ++i)
+            {
+                UnityEngine.Debug.Log(vector[i].ToString("F" + dec) + " ");
+            }
+        }
+
         public double Error(double[][] data, bool verbose)
         {
             // mean squared error using current weights & biases
@@ -86,11 +94,13 @@ namespace Assets.ML
                 Array.Copy(data[i], numInput, tValues, 0, numOutput); // get target values
                 double[] yValues = ComputeOutputs(xValues); // outputs using current weights
 
-                if (verbose)
+                if (verbose == true)
                 {
-                    Console.WriteLine("");
-                    Console.ReadLine();
+                    ShowVector(yValues, 4);
+                    ShowVector(tValues, 4);
+                    UnityEngine.Debug.Log("");
                 }
+
                 for (int j = 0; j < numOutput; j++)
                 {
                     double err = tValues[j] - yValues[j];
@@ -99,6 +109,39 @@ namespace Assets.ML
             }
             return sumSquaredError / (double)(data.Length * numOutput); // average per item
         } // Error
+
+        public double CrossEntropy(double[][] data, bool verbose)
+        {
+            double crossEntropyError = 0.0;
+            double[] xValues = new double[numInput]; // first numInput values in trainData
+            double[] tValues = new double[numOutput]; // last numOutput values
+
+            // walk thru each training case. looks like (6.9 3.2 5.7 2.3) (0 0 1)
+            for (int i = 0; i < data.Length; i++)
+            {
+                Array.Copy(data[i], xValues, numInput);
+                Array.Copy(data[i], numInput, tValues, 0, numOutput); // get target values
+                double[] yValues = ComputeOutputs(xValues); // outputs using current weights
+
+                if (verbose == true)
+                {
+                    ShowVector(yValues, 4);
+                    ShowVector(tValues, 4);
+                    UnityEngine.Debug.Log("");
+                }
+
+                for (int j = 0; j < numOutput; j++)
+                {
+                    double t = tValues[j];
+                    double y = yValues[j];
+
+                    if (y > 0)
+                        crossEntropyError -= t * Math.Log(y) + (1 - t) * Math.Log(1 - y);
+                }
+            }
+
+            return crossEntropyError / data.Length;
+        }
 
         public void SetWeights(double[] weights)
         {
@@ -141,7 +184,7 @@ namespace Assets.ML
                 numInput * numHidden + numHidden * numOutput + numHidden + numOutput
             ];
             int num = 0;
-			
+
             for (int i = 0; i < ihWeights.Length; i++)
             {
                 for (int j = 0; j < ihWeights[0].Length; j++)
@@ -172,7 +215,8 @@ namespace Assets.ML
             double[] hSums = new double[numHidden]; // hidden nodes sums scratch array
             double[] oSums = new double[numOutput]; // output nodes sums
 
-            for (int i = 0; i < xValues.Length; ++i){ // copy x-values to inputs
+            for (int i = 0; i < xValues.Length; ++i)
+            { // copy x-values to inputs
                 inputs[i] = xValues[i];
             }
             for (int j = 0; j < numHidden; j++)
@@ -228,7 +272,7 @@ namespace Assets.ML
             double sum = 0.0;
             for (int i = 0; i < oSums.Length; i++)
             {
-                   sum += Math.Exp(oSums[i]);
+                sum += Math.Exp(oSums[i]);
             }
             double[] result = new double[oSums.Length];
             for (int i = 0; i < oSums.Length; ++i)
@@ -262,10 +306,10 @@ namespace Assets.ML
             double derivative = 0.0;
             double errorSignal = 0.0;
             int[] sequence = new int[trainData.Length];
-            
+
             for (int i = 0; i < sequence.Length; i++)
             {
-                sequence[i] = i;    
+                sequence[i] = i;
             }
             int errInterval = maxEpochs / 10; // interval to check error
             while (epoch < maxEpochs)
@@ -274,7 +318,7 @@ namespace Assets.ML
                 if (epoch % errInterval == 0 && epoch < maxEpochs)
                 {
                     double trainErr = finalErr = Error(trainData);
-                    Console.WriteLine("epoch = " + epoch + "  error = " + trainErr.ToString("F4"));
+                    UnityEngine.Debug.Log("epoch = " + epoch + "  error = " + trainErr.ToString("F4"));
                 }
                 Shuffle(sequence); // visit each training data in random order
                 for (int ii = 0; ii < trainData.Length; ii++)

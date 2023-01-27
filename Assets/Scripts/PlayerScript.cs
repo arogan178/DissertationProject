@@ -21,18 +21,4 @@ public class PlayerScript : MonoBehaviour
         sfx = GameObject.FindWithTag("gamedata").GetComponentsInChildren<AudioSource>();
         asource = GetComponent<AudioSource>();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-        //if (Input.GetButtonDown("Fire1"))
-        //{
-        //    sfx[0].Play();
-
-        //    var newProjectile = Instantiate(projectile, transform.position, transform.rotation);
-        //    Rigidbody rb = newProjectile.GetComponent<Rigidbody>();
-        //    Camera cam = GetComponentInChildren<Camera>();
-        //    rb.velocity = cam.transform.rotation * Vector3.forward * 90;
-        //}
-    }
 }

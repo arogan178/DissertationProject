@@ -8,22 +8,22 @@ public class GameDataScript : MonoBehaviour
 {
     public static GameDataScript singleton;
     public TMP_Text scoreText = null;
-    int score = 0;
+    private int score = 0;
     public TMP_Text nudgingText = null;
     public TMP_Text highScoreText;
 
-    string[] nudgingMessages = new string[]
+    private string[] nudgingMessages = new string[]
     {
         "Well Done!",
         "Keep Going!",
         "Great Job!",
         "Keep it up!",
-        "WHat a hit!"
+        "What a hit!"
     };
-    int displayedAt = 0;
+    private int displayedAt = 0;
 
-    int highScore = 0;
-    AudioSource[] sfx;
+    private int highScore = 0;
+    private AudioSource[] sfx;
 
     public int trackId;
 
@@ -36,7 +36,7 @@ public class GameDataScript : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         sfx = GameObject.FindWithTag("gamedata").GetComponentsInChildren<AudioSource>();
         nudgingText.enabled = true;
@@ -48,11 +48,11 @@ public class GameDataScript : MonoBehaviour
             highScore = PlayerPrefs.GetInt("highScore");
         }
 
-        highScoreText.text = "High score: " + highScore.ToString();
+        highScoreText.text = "High score: " + highScore;
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (score > 0 && score % 5 == 0 && displayedAt != score && !nudgingText.isActiveAndEnabled)
         {
@@ -63,7 +63,7 @@ public class GameDataScript : MonoBehaviour
         }
     }
 
-    IEnumerator Fade()
+    private IEnumerator Fade()
     {
         displayedAt = score;
         yield return new WaitForSeconds(2);
@@ -78,7 +78,7 @@ public class GameDataScript : MonoBehaviour
         {
             PlayerPrefs.SetInt("highScore", score);
             highScore = score;
-            highScoreText.text = "High score: " + highScore.ToString();
+            highScoreText.text = "High score: " + highScore;
             nudgingText.enabled = true;
             StartCoroutine(Fade());
         }
