@@ -84,6 +84,9 @@ public class NewHeartRateScript : MonoBehaviour
     public List<double[]> trainDataList = new List<double[]>();
     public List<double[]> testDataList = new List<double[]>();
 
+    /*     public List<double[]> downloadedTrainingData = new List<double[]>();
+        private string TrainingData; */
+
     Thread trainingThread;
     BaseLineAcquisition baseLineAcquisition;
 
@@ -191,7 +194,6 @@ public class NewHeartRateScript : MonoBehaviour
 
     public void UpdateServerWeights()
     {
-        StartCoroutine(UploadTrainData(trainDataList));
         StartCoroutine(UploadTestData(testDataList));
     }
 
@@ -204,7 +206,7 @@ public class NewHeartRateScript : MonoBehaviour
         //Remove all notifications sent
         AndroidNotificationCenter.CancelAllDisplayedNotifications();
 
-        AndroidNotificationChannel channel1 = new AndroidNotificationChannel();
+        /* AndroidNotificationChannel channel1 = new AndroidNotificationChannel();
         channel1.Id = "1";
         channel1.Name = "Notifications 1";
         channel1.Description = "Affective State Triggered";
@@ -235,7 +237,7 @@ public class NewHeartRateScript : MonoBehaviour
         channel4.EnableVibration = true;
 
         AndroidNotificationCenter.RegisterNotificationChannel(channel4);
-
+        */
         StartCoroutine(GetModelData(Initialize));
         trackSetup = UnityEngine.Object.FindObjectOfType<TrackSetup>();
         baseLineAcquisition = UnityEngine.Object.FindObjectOfType<BaseLineAcquisition>();
@@ -312,14 +314,14 @@ public class NewHeartRateScript : MonoBehaviour
                     "ddd, dd MMM yyyy HH:mm:ss 'GMT'",
                     CultureInfo.InvariantCulture
                 );
-                var serverDate = dateTimeOffset.DateTime;
-                if (DateTime.Compare(serverModelDate, localModelDate) > 0)
+                var serverModelDate = dateTimeOffset.DateTime;
+                Debug.Log("Server Model Date: " + serverModelDate);
+                Debug.Log("Local Model Date: " + localModelDate);
+
+                if (DateTime.Compare(serverModelDate, localModelDate) >= 0)
                 {
-                    Debug.Log("Local Model Date: " + localModelDate);
-                    Debug.Log("Server Model Date: " + serverModelDate);
-                    Debug.Log(
-                        "downloadedWeightsANNSGD: " + string.Join(", ", downloadedWeightsANNSGD)
-                    );
+                    Debug.Log("ServerModel => Local Model");
+
                     //average the weights and initialise
                     var averagedModelWeights = Helpers.AverageWeights(
                         downloadedWeightsANNSGD,
@@ -327,10 +329,11 @@ public class NewHeartRateScript : MonoBehaviour
                     );
                     dNN.InitializeModelANNBackProp(averagedModelWeights);
                     ANNmodelWeights = averagedModelWeights;
+                    // StartCoroutine(GetTrainingData());
                 }
                 else
                 {
-                    Debug.Log("Local Model Date > Server Model Date");
+                    Debug.Log("Server Model Date < Local Model Date");
                     dNN.InitializeModelANNBackProp(localWeightsANNSGD);
                     ANNmodelWeights = localWeightsANNSGD;
                 }
@@ -371,7 +374,7 @@ public class NewHeartRateScript : MonoBehaviour
                 double rmssd = Helpers.RMSSD(RRreadingsList);
                 rmssdList.Add(rmssd);
                 rmssdText.text = rmssd.ToString("F3");
-                Debug.Log("Vitals - RRMSD: " + rmssd);
+                Debug.Log("Vitals - RRMSD " + rmssdList.Count + "" + rmssd);
 
                 // Calculate the winning affective state from the affectiveStatesList
                 // Add the calculated winning affective state to the winningAffectiveStatesList
@@ -387,7 +390,6 @@ public class NewHeartRateScript : MonoBehaviour
                 // Store the list of HR readings in a separate list, then clear the hrReadings list
                 // Calculate the maximum heart rate change for the HR readings
                 // Loop through the rmssdList
-                Debug.Log("Vitals - RMSSD Count: " + rmssdList.Count);
                 for (int i = 0; i < rmssdList.Count; i++)
                 {
                     List<int> HRList = hrReadings;
@@ -405,9 +407,10 @@ public class NewHeartRateScript : MonoBehaviour
                     {
                         // Add the array to the trainDataList
                         trainDataList.Add(resultArray);
-                        Debug.Log("Info - trainDataList Count" + trainDataList.Count);
                         Debug.Log(
                             "Info - trainDataList "
+                                + trainDataList.Count
+                                + " :"
                                 + JsonConvert.SerializeObject(trainDataList, Formatting.Indented)
                         );
                     }
@@ -449,7 +452,6 @@ public class NewHeartRateScript : MonoBehaviour
             trainingStarted = true;
             if (trainingThread == null || !trainingThread.IsAlive)
             {
-                Dictionary<string, object> dict = new Dictionary<string, object>();
                 string playerDataPath =
                     Application.persistentDataPath
                     + "/Users/"
@@ -472,6 +474,15 @@ public class NewHeartRateScript : MonoBehaviour
 
                 List<double[]> normalizedData = trainDataList;
 
+                /*  if (downloadedTrainingData.Count > 0)
+                 {
+                     foreach (double[] data in downloadedTrainingData)
+                     {
+                         normalizedData.Add(data);
+                     }
+                 } */
+
+                Dictionary<string, object> dict = new Dictionary<string, object>();
                 dict.Add("DataPath", playerDataPath);
                 dict.Add("TrainingData", normalizedData);
                 dict.Add("DownloadedWeightsANNSGD", downloadedWeightsANNSGD);
@@ -509,6 +520,7 @@ public class NewHeartRateScript : MonoBehaviour
         {
             modelIterations = PlayerPrefs.GetInt(trainingIterationsKey) + 1;
         }
+        StartCoroutine(UploadTrainData(trainDataList));
         PlayerPrefs.SetInt(trainingIterationsKey, modelIterations);
         PlayerPrefs.SetString(localModelDateKey, DateTime.Now.ToString());
         if (modelIterations > 0 && modelIterations % 5 == 0)
@@ -523,8 +535,6 @@ public class NewHeartRateScript : MonoBehaviour
 
     /*
     The ReadStartingHr() function is used to read the user's starting heart rate.
-    If the application is running in an editor or is not connected to a device, a random heart rate value between 60 and 70 is assigned to startingHr.
-    If the application is connected to a device, startingHr is set to the value of the heart rate data received from the device.
     */
 
     void ReadStartingHr()
@@ -540,6 +550,13 @@ public class NewHeartRateScript : MonoBehaviour
 
         if (!Application.isEditor)
         {
+            if (HRValue == 0)
+            {
+                if (hrReadings.Count > 0)
+                {
+                    HRValue = hrReadings[hrReadings.Count - 1];
+                }
+            }
             hrReadings.Add(HRValue);
         }
         else
@@ -555,7 +572,6 @@ public class NewHeartRateScript : MonoBehaviour
         }
 
         //If the baseline is true and the training process is true, HR is added to the checkStateHr list.
-        //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
         if (baseLineAcquisition.baselineGathered && dNN.trainingComplete && HRValue != 0)
         {
             checkStateHr.Add(HRValue);
@@ -587,7 +603,6 @@ public class NewHeartRateScript : MonoBehaviour
         }
         rrIntervalText.text = ((int)RR).ToString();
 
-        //if (baseLineAcquisition.baselineGathered && (dNN.trainingComplete || isInitialized) || isInitialized)
         if (baseLineAcquisition.baselineGathered && dNN.trainingComplete)
         {
             checkStateRR.Add((int)RR);
@@ -675,12 +690,12 @@ public class NewHeartRateScript : MonoBehaviour
         if (currentState == 0)
         {
             trackSetup.trackId = 1;
-            SendVibrationMessageToSmartWatch();
+            StartCoroutine(TriggerRequest());
         }
         else if (currentState == 1)
         {
             trackSetup.trackId = 0;
-            SendVibrationMessageToSmartWatch();
+            StartCoroutine(TriggerRequest());
         }
         //Clear the checkStateRR and checkStateHr lists.
         checkStateRR = new List<int>();
@@ -689,7 +704,29 @@ public class NewHeartRateScript : MonoBehaviour
         Debug.Log("TrainDataList - " + Newtonsoft.Json.JsonConvert.SerializeObject(trainDataList));
     }
 
-    void SendVibrationMessageToSmartWatch()
+    private IEnumerator TriggerRequest()
+    {
+        for (int i = 0; i < 2; i++)
+        {
+            UnityWebRequest webRequest = UnityWebRequest.Get(
+                "http://xdroid.net/api/message?k=k-2412f77e7c0e&t=sample&c=from+google+Pixel+6&u=http%3A%2F%2Fgoogle.com"
+            );
+            yield return webRequest.SendWebRequest();
+
+            if (webRequest.isNetworkError || webRequest.isHttpError)
+            {
+                Debug.LogError(webRequest.error);
+            }
+            else
+            {
+                Debug.Log(webRequest.downloadHandler.text);
+            }
+
+            yield return new WaitForSeconds(4f);
+        }
+    }
+
+    /* void SendVibrationMessageToSmartWatch()
     {
         var notification = new AndroidNotification();
         notification.Title = "";
@@ -715,7 +752,7 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationCenter.SendNotification(notification1, "2");
         AndroidNotificationCenter.SendNotification(notification2, "3");
         AndroidNotificationCenter.SendNotification(notification3, "4");
-    }
+    } */
 
     public IEnumerator UploadTrainData(List<double[]> trainDataList)
     {
@@ -742,6 +779,7 @@ public class NewHeartRateScript : MonoBehaviour
         );
 
         yield return req.SendWebRequest();
+        Debug.Log("Status Code: " + req.responseCode);
     }
 
     public IEnumerator UploadTestData(List<double[]> testDataList)
@@ -767,6 +805,7 @@ public class NewHeartRateScript : MonoBehaviour
         );
 
         yield return req.SendWebRequest();
+        Debug.Log("Status Code: " + req.responseCode);
     }
 
     IEnumerator GetModelData(System.Action<DownloadModel> callbackOnFinish)
@@ -784,6 +823,7 @@ public class NewHeartRateScript : MonoBehaviour
                 Debug.LogError(webRequest.error);
                 var emptyData = new DownloadModel();
                 Initialize(emptyData);
+                Debug.Log("Status Code: " + webRequest.responseCode);
             }
             else
             {
@@ -805,6 +845,39 @@ public class NewHeartRateScript : MonoBehaviour
             Debug.Log("HTTP Error " + webRequest.isHttpError);
         }
     }
+
+    /*     IEnumerator GetTrainingData()
+        {
+            using (
+                UnityWebRequest www = UnityWebRequest.Get(
+                    "http://arogan178.eu.pythonanywhere.com/api/downloadData"
+                )
+            )
+            {
+                yield return www.SendWebRequest();
+    
+                if (www.isNetworkError || www.isHttpError)
+                {
+                    Debug.Log(www.error);
+                }
+                else
+                {
+                    TrainingData = www.downloadHandler.text;
+                    string[] data = TrainingData.Split(';');
+                    foreach (string datum in data)
+                    {
+                        string[] values = datum.Split(',');
+                        double[] normalizedValues = new double[values.Length];
+                        for (int i = 0; i < values.Length; i++)
+                        {
+                            normalizedValues[i] = double.Parse(values[i]);
+                        }
+                        downloadedTrainingData.Add(normalizedValues);
+                    }
+                    Debug.Log("Training data retrieval complete");
+                }
+            }
+        } */
 
     [System.Serializable]
     public class DownloadModel

@@ -5,6 +5,7 @@ using UnityEngine;
 public class BaseLineAcquisition : MonoBehaviour
 {
     public float elapsedTime = 0.0f;
+    public float baselineduration = 240;
     public bool baselineGathered = false;
     float delay = 0.0f;
 
@@ -19,13 +20,13 @@ public class BaseLineAcquisition : MonoBehaviour
         }
         else
         {
-            if (elapsedTime < 240)
+            if (elapsedTime < baselineduration)
             {
                 if (elapsedTime >= 0 && elapsedTime <= 120)
                 {
                     trackSetup.trackId = 1;
                 }
-                else if (elapsedTime > 120 && elapsedTime <= 240)
+                else if (elapsedTime > 120 && elapsedTime <= baselineduration)
                 {
                     trackSetup.trackId = 0;
                 }
@@ -36,7 +37,7 @@ public class BaseLineAcquisition : MonoBehaviour
             {
                 baselineGathered = true;
             }
-            if (elapsedTime < 240)
+            if (elapsedTime < baselineduration)
             {
                 elapsedTime = elapsedTime + Time.deltaTime;
             }

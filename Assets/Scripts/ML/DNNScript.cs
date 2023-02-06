@@ -63,7 +63,7 @@ public class DNNScript : MonoBehaviour
 
     private int maxEpochsANNBP = 10;
     private double learnRateANNBP = 0.01;
-    private double momentumANNBP = 0.25;
+    private double momentumANNBP = 0.1;
 
     public void WriteAnalytics(List<double[]> trainData, List<double[]> testData)
     {
