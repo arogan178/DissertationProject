@@ -206,38 +206,38 @@ public class NewHeartRateScript : MonoBehaviour
         //Remove all notifications sent
         AndroidNotificationCenter.CancelAllDisplayedNotifications();
 
-        /* AndroidNotificationChannel channel1 = new AndroidNotificationChannel();
-        channel1.Id = "1";
-        channel1.Name = "Notifications 1";
-        channel1.Description = "Affective State Triggered";
-        channel1.EnableVibration = true;
+        AndroidNotificationChannel AffectiveStateChannel1 = new AndroidNotificationChannel();
+        AffectiveStateChannel1.Id = "1";
+        AffectiveStateChannel1.Name = "Affective State Notification 1";
+        AffectiveStateChannel1.Description = "Affective State Triggered";
+        AffectiveStateChannel1.EnableVibration = true;
 
-        AndroidNotificationCenter.RegisterNotificationChannel(channel1);
+        AndroidNotificationCenter.RegisterNotificationChannel(AffectiveStateChannel1);
 
-        AndroidNotificationChannel channel2 = new AndroidNotificationChannel();
-        channel2.Id = "2";
-        channel2.Name = "Notifications 2";
-        channel2.Description = "Affective State Triggered";
-        channel2.EnableVibration = true;
+        AndroidNotificationChannel AffectiveStateChannel2 = new AndroidNotificationChannel();
+        AffectiveStateChannel2.Id = "2";
+        AffectiveStateChannel2.Name = "Affective State Notification 2";
+        AffectiveStateChannel2.Description = "Affective State Triggered";
+        AffectiveStateChannel2.EnableVibration = true;
 
-        AndroidNotificationCenter.RegisterNotificationChannel(channel2);
+        AndroidNotificationCenter.RegisterNotificationChannel(AffectiveStateChannel2);
 
-        AndroidNotificationChannel channel3 = new AndroidNotificationChannel();
-        channel3.Id = "3";
-        channel3.Name = "Notifications 3";
-        channel3.Description = "Affective State Triggered";
-        channel3.EnableVibration = true;
+        AndroidNotificationChannel AffectiveStateChannel3 = new AndroidNotificationChannel();
+        AffectiveStateChannel3.Id = "3";
+        AffectiveStateChannel3.Name = "Affective State Notification 3";
+        AffectiveStateChannel3.Description = "Affective State Triggered";
+        AffectiveStateChannel3.EnableVibration = true;
 
-        AndroidNotificationCenter.RegisterNotificationChannel(channel3);
+        AndroidNotificationCenter.RegisterNotificationChannel(AffectiveStateChannel3);
 
-        AndroidNotificationChannel channel4 = new AndroidNotificationChannel();
-        channel4.Id = "4";
-        channel4.Name = "Notifications 4";
-        channel4.Description = "Affective State Triggered";
-        channel4.EnableVibration = true;
+        AndroidNotificationChannel AffectiveStateChannel4 = new AndroidNotificationChannel();
+        AffectiveStateChannel4.Id = "4";
+        AffectiveStateChannel4.Name = "Affective State Notification 4";
+        AffectiveStateChannel4.Description = "Affective State Triggered";
+        AffectiveStateChannel4.EnableVibration = true;
 
-        AndroidNotificationCenter.RegisterNotificationChannel(channel4);
-        */
+        AndroidNotificationCenter.RegisterNotificationChannel(AffectiveStateChannel4);
+
         StartCoroutine(GetModelData(Initialize));
         trackSetup = UnityEngine.Object.FindObjectOfType<TrackSetup>();
         baseLineAcquisition = UnityEngine.Object.FindObjectOfType<BaseLineAcquisition>();
@@ -690,12 +690,12 @@ public class NewHeartRateScript : MonoBehaviour
         if (currentState == 0)
         {
             trackSetup.trackId = 1;
-            StartCoroutine(TriggerRequest());
+            SendVibrationMessageToSmartWatch();
         }
         else if (currentState == 1)
         {
             trackSetup.trackId = 0;
-            StartCoroutine(TriggerRequest());
+            SendVibrationMessageToSmartWatch();
         }
         //Clear the checkStateRR and checkStateHr lists.
         checkStateRR = new List<int>();
@@ -704,7 +704,7 @@ public class NewHeartRateScript : MonoBehaviour
         Debug.Log("TrainDataList - " + Newtonsoft.Json.JsonConvert.SerializeObject(trainDataList));
     }
 
-    private IEnumerator TriggerRequest()
+    /* private IEnumerator TriggerRequest()
     {
         for (int i = 0; i < 2; i++)
         {
@@ -724,9 +724,9 @@ public class NewHeartRateScript : MonoBehaviour
 
             yield return new WaitForSeconds(4f);
         }
-    }
+    } */
 
-    /* void SendVibrationMessageToSmartWatch()
+    void SendVibrationMessageToSmartWatch()
     {
         var notification = new AndroidNotification();
         notification.Title = "";
@@ -752,7 +752,7 @@ public class NewHeartRateScript : MonoBehaviour
         AndroidNotificationCenter.SendNotification(notification1, "2");
         AndroidNotificationCenter.SendNotification(notification2, "3");
         AndroidNotificationCenter.SendNotification(notification3, "4");
-    } */
+    }
 
     public IEnumerator UploadTrainData(List<double[]> trainDataList)
     {
